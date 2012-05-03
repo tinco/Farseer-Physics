@@ -111,7 +111,7 @@ namespace FarseerPhysics.TestBed.Tests
             RightWheel.CreateFixture(wheelShape);
             LeftRearWheel.CreateFixture(wheelShape);
             RightRearWheel.CreateFixture(wheelShape);
-
+            
             // Define joints
             leftJoint = JointFactory.CreateRevoluteJoint(World, LeftWheel, body, DEFAULT_LF_WHEELPOS); //Position relative to the body
             //leftJoint = JointFactory.CreateWeldJoint(World, LeftWheel, body, DEFAULT_LF_WHEELPOS); //Position relative to the body
@@ -119,7 +119,7 @@ namespace FarseerPhysics.TestBed.Tests
             leftJoint.LimitEnabled = true;
             leftJoint.LowerLimit = -DEFAULT_MAX_STEER_ANGLE;
             leftJoint.UpperLimit = DEFAULT_MAX_STEER_ANGLE;
-            leftJoint.MaxMotorTorque = 10; //Doesnt seem to do anything*/
+            leftJoint.MaxMotorTorque = 10; //Doesnt seem to do anything
 
             //rightJoint = JointFactory.CreateWeldJoint(World, RightWheel, body, DEFAULT_RF_WHEELPOS); //Position relative to the body
             rightJoint = JointFactory.CreateRevoluteJoint(World, RightWheel, body, DEFAULT_RF_WHEELPOS); //Position relative to the body
@@ -127,32 +127,34 @@ namespace FarseerPhysics.TestBed.Tests
             rightJoint.LimitEnabled = true;
             rightJoint.LowerLimit = -DEFAULT_MAX_STEER_ANGLE;
             rightJoint.UpperLimit = DEFAULT_MAX_STEER_ANGLE;
-            rightJoint.MaxMotorTorque = 10; //Doesnt seem to do anything*/
+            rightJoint.MaxMotorTorque = 10; //Doesnt seem to do anything
 
             LeftRearJoint = JointFactory.CreateWeldJoint(World, body, LeftRearWheel, DEFAULT_LR_WHEELPOS);
             //LeftRearJoint.LimitEnabled = true;
             //LeftRearJoint.LowerLimit = LeftRearJoint.UpperLimit = 0;
-
+            
             RightRearJoint = JointFactory.CreateWeldJoint(World, body, RightRearWheel, DEFAULT_RR_WHEELPOS);
             //RightRearJoint.LimitEnabled = true;
             //RightRearJoint.LowerLimit = RightRearJoint.UpperLimit = 0;
-
-
         }
 
         public void SetState(Vector2 position)
         {
-            _car.SetTransform(ref position, 0);
+            var rotation = (float)Math.PI / 2;
             //Debug.WriteLine("Client Position: " + state.Position + " Rotation: " + state.WheelAngle);
             //Debug.WriteLine("   Own Position: " + PhysicsBody.Position + " Rotation: " + LeftWheel.Rotation);
-            /*var dP = _car.Position - position;
-            var dA = _car.Rotation - 0;
-            _car.SetTransform(ref position, 0);
+            var dP = _car.Position - position;
+            var dA = _car.Rotation - rotation;
+            _car.SetTransform(ref position, rotation);
             //*/
-            /*LeftWheel.Position = LeftWheel.Position + dP;
-            RightWheel.Position += dP;
-            RightRearWheel.Position += dP;
-            LeftRearWheel.Position += dP;*/
+            LeftWheel.Position = leftJoint.WorldAnchorB;
+            LeftWheel.Rotation -= dA;
+            RightWheel.Position = rightJoint.WorldAnchorB;
+            RightWheel.Rotation -= dA;
+            RightRearWheel.Position = RightRearJoint.WorldAnchorA;
+            RightRearWheel.Rotation -= dA;
+            LeftRearWheel.Position = LeftRearJoint.WorldAnchorA; //*/
+            LeftRearWheel.Rotation -= dA;
             /*LeftWheel.Rotation = LeftWheel.Rotation + dA;
             leftJoint.LocalAnchorA = LeftWheel.GetLocalPoint(LeftWheel.Position);
             leftJoint.LocalAnchorB = _car.GetLocalPoint(LeftWheel.Position);
@@ -192,7 +194,7 @@ namespace FarseerPhysics.TestBed.Tests
             }
         }
 
-        private bool doUpdate = false;
+        private bool doUpdate = true;
         public override void Keyboard(KeyboardManager keyboardManager)
         {
             if (keyboardManager.IsKeyDown(Keys.W))
@@ -280,10 +282,9 @@ namespace FarseerPhysics.TestBed.Tests
             leftJoint.MotorSpeed = (mspeed * DEFAULT_STEER_SPEED);
             mspeed = steeringAngle - rightJoint.JointAngle;
             rightJoint.MotorSpeed = (mspeed * DEFAULT_STEER_SPEED);
-
-            //_car.Rotation += steeringAngle;
+            
             resetInput();
-            doUpdate = false;
+            doUpdate = true;
             base.Update(settings, gameTime);
         }
 
