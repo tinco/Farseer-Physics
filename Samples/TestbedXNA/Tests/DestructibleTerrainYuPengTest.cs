@@ -196,8 +196,8 @@ namespace FarseerPhysics.TestBed.Tests
 
         public bool Clip(Vertices clipVertices, Vector2 position)
         {
-            Mat22 mat = new Mat22(0);
-            Transform t = new Transform(ref position, ref mat);
+            Rot rot = new Rot(0);
+            Transform t = new Transform(ref position, ref rot);
 
             //Transform shape
             Transform thistransform;
@@ -208,8 +208,8 @@ namespace FarseerPhysics.TestBed.Tests
             foreach (Vector2 v in clipVertices)
             {
                 Vector2 newv = v;
-                newv = MathUtils.Multiply(ref t, ref newv);
-                newv = MathUtils.MultiplyT(ref thistransform, ref newv);
+                newv = MathUtils.Mul(ref t, ref newv);
+                newv = MathUtils.MulT(ref thistransform, ref newv);
                 transformedshape.Add(newv);
             }
 

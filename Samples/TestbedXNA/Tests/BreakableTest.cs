@@ -1,12 +1,9 @@
 /*
 * Farseer Physics Engine based on Box2D.XNA port:
-* Copyright (c) 2010 Ian Qvist
+* Copyright (c) 2011 Ian Qvist
 * 
-* Box2D.XNA port of Box2D:
-* Copyright (c) 2009 Brandon Furtwangler, Nathan Furtwangler
-*
 * Original source Box2D:
-* Copyright (c) 2006-2009 Erin Catto http://www.box2d.org 
+* Copyright (c) 2006-2011 Erin Catto http://www.box2d.org 
 * 
 * This software is provided 'as-is', without any express or implied 
 * warranty.  In no event will the authors be held liable for any damages 
@@ -93,7 +90,7 @@ namespace FarseerPhysics.TestBed.Tests
             base.Initialize();
         }
 
-        protected override void PostSolve(Contact contact, ContactConstraint impulse)
+        protected override void PostSolve(Contact contact, ContactVelocityConstraint impulse)
         {
             if (_broke)
             {
@@ -108,7 +105,7 @@ namespace FarseerPhysics.TestBed.Tests
 
             for (int i = 0; i < manifold.PointCount; ++i)
             {
-                maxImpulse = Math.Max(maxImpulse, impulse.Points[i].NormalImpulse);
+                maxImpulse = Math.Max(maxImpulse, impulse.points[i].normalImpulse);
             }
 
             if (maxImpulse > 40.0f)

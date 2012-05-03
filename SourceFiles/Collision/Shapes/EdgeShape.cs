@@ -1,12 +1,9 @@
 /*
 * Farseer Physics Engine based on Box2D.XNA port:
-* Copyright (c) 2010 Ian Qvist
+* Copyright (c) 2011 Ian Qvist
 * 
-* Box2D.XNA port of Box2D:
-* Copyright (c) 2009 Brandon Furtwangler, Nathan Furtwangler
-*
 * Original source Box2D:
-* Copyright (c) 2006-2009 Erin Catto http://www.box2d.org 
+* Copyright (c) 2006-2011 Erin Catto http://www.box2d.org 
 * 
 * This software is provided 'as-is', without any express or implied 
 * warranty.  In no event will the authors be held liable for any damages 
@@ -50,12 +47,12 @@ namespace FarseerPhysics.Collision.Shapes
         /// <summary>
         /// Edge start vertex
         /// </summary>
-        private Vector2 _vertex1;
+        internal Vector2 _vertex1;
 
         /// <summary>
         /// Edge end vertex
         /// </summary>
-        private Vector2 _vertex2;
+        internal Vector2 _vertex2;
 
         internal EdgeShape()
             : base(0)
@@ -115,6 +112,7 @@ namespace FarseerPhysics.Collision.Shapes
             HasVertex0 = false;
             HasVertex3 = false;
 
+            //Added here to speed things up
             ComputeProperties();
         }
 
@@ -163,8 +161,8 @@ namespace FarseerPhysics.Collision.Shapes
             output = new RayCastOutput();
 
             // Put the ray into the edge's frame of reference.
-            Vector2 p1 = MathUtils.MultiplyT(ref transform.R, input.Point1 - transform.Position);
-            Vector2 p2 = MathUtils.MultiplyT(ref transform.R, input.Point2 - transform.Position);
+            Vector2 p1 = MathUtils.MulT(transform.q, input.Point1 - transform.p);
+            Vector2 p2 = MathUtils.MulT(transform.q, input.Point2 - transform.p);
             Vector2 d = p2 - p1;
 
             Vector2 v1 = _vertex1;
@@ -185,7 +183,7 @@ namespace FarseerPhysics.Collision.Shapes
             }
 
             float t = numerator / denominator;
-            if (t < 0.0f || 1.0f < t)
+            if (t < 0.0f || input.MaxFraction < t)
             {
                 return false;
             }
@@ -227,8 +225,8 @@ namespace FarseerPhysics.Collision.Shapes
         /// <param name="childIndex">The child shape index.</param>
         public override void ComputeAABB(out AABB aabb, ref Transform transform, int childIndex)
         {
-            Vector2 v1 = MathUtils.Multiply(ref transform, _vertex1);
-            Vector2 v2 = MathUtils.Multiply(ref transform, _vertex2);
+            Vector2 v1 = MathUtils.Mul(ref transform, _vertex1);
+            Vector2 v2 = MathUtils.Mul(ref transform, _vertex2);
 
             Vector2 lower = Vector2.Min(v1, v2);
             Vector2 upper = Vector2.Max(v1, v2);
@@ -242,7 +240,7 @@ namespace FarseerPhysics.Collision.Shapes
         /// Compute the mass properties of this shape using its dimensions and density.
         /// The inertia tensor is computed about the local origin, not the centroid.
         /// </summary>
-        public override void ComputeProperties()
+        protected override void ComputeProperties()
         {
             MassData.Centroid = 0.5f * (_vertex1 + _vertex2);
         }

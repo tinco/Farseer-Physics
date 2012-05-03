@@ -48,7 +48,7 @@ namespace FarseerPhysics.Dynamics
             }
         }
 
-        private void PostSolve(Contact contact, ContactConstraint impulse)
+        private void PostSolve(Contact contact, ContactVelocityConstraint impulse)
         {
             if (!Broken)
             {
@@ -59,7 +59,7 @@ namespace FarseerPhysics.Dynamics
 
                     for (int i = 0; i < count; ++i)
                     {
-                        maxImpulse = Math.Max(maxImpulse, impulse.Points[i].NormalImpulse);
+                        maxImpulse = Math.Max(maxImpulse, impulse.points[i].normalImpulse);
                     }
 
                     if (maxImpulse > Strength)

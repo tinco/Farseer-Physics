@@ -150,7 +150,7 @@ namespace FarseerPhysics.SamplesFramework
                     b.GetTransform(out t);
                     for (int j = 0; j < s.Vertices.Count; ++j)
                     {
-                        temp.Add(MathUtils.Multiply(ref t, s.Vertices[j]));
+                        temp.Add(MathUtils.Mul(ref t, s.Vertices[j]));
                     }
                     ScreenManager.LineBatch.DrawVertices(temp);
                 }
@@ -165,7 +165,7 @@ namespace FarseerPhysics.SamplesFramework
                     Vertices temp = new Vertices();
                     for (int k = 0; k < _breakableObject[index][j].Count; ++k)
                     {
-                        temp.Add(MathUtils.Multiply(ref t, _breakableObject[index][j][k]));
+                        temp.Add(MathUtils.Mul(ref t, _breakableObject[index][j][k]));
                     }
                     ScreenManager.LineBatch.DrawVertices(temp);
                 }

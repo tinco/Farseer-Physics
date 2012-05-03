@@ -29,8 +29,8 @@ namespace FarseerPhysics.SamplesFramework
         private float _maxSpeed;
 
         private float _scale;
-        private LineJoint _springBack;
-        private LineJoint _springFront;
+        private WheelJoint _springBack;
+        private WheelJoint _springFront;
         private Sprite _teeter;
         private Sprite _wheel;
         private Body _wheelBack;
@@ -233,20 +233,20 @@ namespace FarseerPhysics.SamplesFramework
                 _wheelFront.CreateFixture(new CircleShape(0.5f, 1f));
 
                 Vector2 axis = new Vector2(0.0f, -1.2f);
-                _springBack = new LineJoint(_car, _wheelBack, _wheelBack.Position, axis);
+                _springBack = new WheelJoint(_car, _wheelBack, _wheelBack.Position, axis);
                 _springBack.MotorSpeed = 0.0f;
                 _springBack.MaxMotorTorque = 20.0f;
                 _springBack.MotorEnabled = true;
-                _springBack.Frequency = _hzBack;
-                _springBack.DampingRatio = _zeta;
+                //_springBack.Frequency = _hzBack;
+                //_springBack.DampingRatio = _zeta;
                 World.AddJoint(_springBack);
 
-                _springFront = new LineJoint(_car, _wheelFront, _wheelFront.Position, axis);
+                _springFront = new WheelJoint(_car, _wheelFront, _wheelFront.Position, axis);
                 _springFront.MotorSpeed = 0.0f;
                 _springFront.MaxMotorTorque = 10.0f;
                 _springFront.MotorEnabled = false;
-                _springFront.Frequency = _hzFront;
-                _springFront.DampingRatio = _zeta;
+                //_springFront.Frequency = _hzFront;
+                //_springFront.DampingRatio = _zeta;
                 World.AddJoint(_springFront);
 
                 _carBody = new Sprite(ScreenManager.Content.Load<Texture2D>("Samples/car"),

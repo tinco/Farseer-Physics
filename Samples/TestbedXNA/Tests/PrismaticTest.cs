@@ -1,12 +1,9 @@
 /*
 * Farseer Physics Engine based on Box2D.XNA port:
-* Copyright (c) 2010 Ian Qvist
+* Copyright (c) 2011 Ian Qvist
 * 
-* Box2D.XNA port of Box2D:
-* Copyright (c) 2009 Brandon Furtwangler, Nathan Furtwangler
-*
 * Original source Box2D:
-* Copyright (c) 2006-2009 Erin Catto http://www.box2d.org 
+* Copyright (c) 2006-2011 Erin Catto http://www.box2d.org 
 * 
 * This software is provided 'as-is', without any express or implied 
 * warranty.  In no event will the authors be held liable for any damages 
@@ -35,7 +32,7 @@ namespace FarseerPhysics.TestBed.Tests
 {
     public class PrismaticTest : Test
     {
-        private FixedPrismaticJoint _fixedJoint;
+        //private FixedPrismaticJoint _fixedJoint;
         private PrismaticJoint _joint;
 
         private PrismaticTest()
@@ -57,15 +54,15 @@ namespace FarseerPhysics.TestBed.Tests
 
             body.CreateFixture(shape);
 
-            _fixedJoint = new FixedPrismaticJoint(body, body.Position, new Vector2(0.5f, 1.0f));
-            _fixedJoint.MotorSpeed = 5.0f;
-            _fixedJoint.MaxMotorForce = 1000.0f;
-            _fixedJoint.MotorEnabled = true;
-            _fixedJoint.LowerLimit = -10.0f;
-            _fixedJoint.UpperLimit = 20.0f;
-            _fixedJoint.LimitEnabled = true;
+            //_fixedJoint = new FixedPrismaticJoint(body, body.Position, new Vector2(0.5f, 1.0f));
+            //_fixedJoint.MotorSpeed = 5.0f;
+            //_fixedJoint.MaxMotorForce = 1000.0f;
+            //_fixedJoint.MotorEnabled = true;
+            //_fixedJoint.LowerLimit = -10.0f;
+            //_fixedJoint.UpperLimit = 20.0f;
+            //_fixedJoint.LimitEnabled = true;
 
-            World.AddJoint(_fixedJoint);
+            //World.AddJoint(_fixedJoint);
 
             PolygonShape shape2 = new PolygonShape(5);
             shape2.SetAsBox(2.0f, 0.5f);
@@ -90,21 +87,21 @@ namespace FarseerPhysics.TestBed.Tests
 
         public override void Keyboard(KeyboardManager keyboardManager)
         {
-            if (keyboardManager.IsNewKeyPress(Keys.L))
-            {
-                _fixedJoint.LimitEnabled = !_fixedJoint.LimitEnabled;
-                _joint.LimitEnabled = !_joint.LimitEnabled;
-            }
-            if (keyboardManager.IsNewKeyPress(Keys.M))
-            {
-                _fixedJoint.MotorEnabled = !_fixedJoint.MotorEnabled;
-                _joint.MotorEnabled = !_joint.MotorEnabled;
-            }
-            if (keyboardManager.IsNewKeyPress(Keys.P))
-            {
-                _fixedJoint.MotorSpeed = -_fixedJoint.MotorSpeed;
-                _joint.MotorSpeed = -_joint.MotorSpeed;
-            }
+            //if (keyboardManager.IsNewKeyPress(Keys.L))
+            //{
+            //    _fixedJoint.LimitEnabled = !_fixedJoint.LimitEnabled;
+            //    _joint.LimitEnabled = !_joint.LimitEnabled;
+            //}
+            //if (keyboardManager.IsNewKeyPress(Keys.M))
+            //{
+            //    _fixedJoint.MotorEnabled = !_fixedJoint.MotorEnabled;
+            //    _joint.MotorEnabled = !_joint.MotorEnabled;
+            //}
+            //if (keyboardManager.IsNewKeyPress(Keys.P))
+            //{
+            //    _fixedJoint.MotorSpeed = -_fixedJoint.MotorSpeed;
+            //    _joint.MotorSpeed = -_joint.MotorSpeed;
+            //}
 
             base.Keyboard(keyboardManager);
         }

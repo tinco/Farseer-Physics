@@ -1,12 +1,9 @@
 ﻿/*
 * Farseer Physics Engine based on Box2D.XNA port:
-* Copyright (c) 2010 Ian Qvist
+* Copyright (c) 2011 Ian Qvist
 * 
-* Box2D.XNA port of Box2D:
-* Copyright (c) 2009 Brandon Furtwangler, Nathan Furtwangler
-*
 * Original source Box2D:
-* Copyright (c) 2006-2009 Erin Catto http://www.box2d.org 
+* Copyright (c) 2006-2011 Erin Catto http://www.box2d.org 
 * 
 * This software is provided 'as-is', without any express or implied 
 * warranty.  In no event will the authors be held liable for any damages 
@@ -67,6 +64,7 @@ namespace FarseerPhysics.Collision
     /// </summary>
     public class DynamicTreeBroadPhase : IBroadPhase
     {
+        private const int NullProxy = -1;
         private int[] _moveBuffer;
         private int _moveCapacity;
         private int _moveCount;
@@ -79,14 +77,20 @@ namespace FarseerPhysics.Collision
         private int _queryProxyId;
         private DynamicTree<FixtureProxy> _tree = new DynamicTree<FixtureProxy>();
 
+        /// <summary>
+        /// Constructs a new broad phase based on the dynamic tree implementation
+        /// </summary>
         public DynamicTreeBroadPhase()
         {
-            _queryCallback = new Func<int, bool>(QueryCallback);
+            _queryCallback = QueryCallback;
+            _proxyCount = 0;
 
             _pairCapacity = 16;
+            _pairCount = 0;
             _pairBuffer = new Pair[_pairCapacity];
 
             _moveCapacity = 16;
+            _moveCount = 0;
             _moveBuffer = new int[_moveCapacity];
         }
 
@@ -105,7 +109,6 @@ namespace FarseerPhysics.Collision
         /// Create a proxy with an initial AABB. Pairs are not reported until
         /// UpdatePairs is called.
         /// </summary>
-        /// <param name="aabb">The aabb.</param>
         /// <param name="proxy">The user data.</param>
         /// <returns></returns>
         public int AddProxy(ref FixtureProxy proxy)
@@ -135,6 +138,62 @@ namespace FarseerPhysics.Collision
                 BufferMove(proxyId);
             }
         }
+
+        public void TouchProxy(int proxyId)
+        {
+            BufferMove(proxyId);
+        }
+
+        private void BufferMove(int proxyId)
+        {
+            if (_moveCount == _moveCapacity)
+            {
+                int[] oldBuffer = _moveBuffer;
+                _moveCapacity *= 2;
+                _moveBuffer = new int[_moveCapacity];
+                Array.Copy(oldBuffer, _moveBuffer, _moveCount);
+            }
+
+            _moveBuffer[_moveCount] = proxyId;
+            ++_moveCount;
+        }
+
+        private void UnBufferMove(int proxyId)
+        {
+            for (int i = 0; i < _moveCount; ++i)
+            {
+                if (_moveBuffer[i] == proxyId)
+                {
+                    _moveBuffer[i] = -1;
+                }
+            }
+        }
+
+        // This is called from b2DynamicTree::Query when we are gathering pairs.
+        private bool QueryCallback(int proxyId)
+        {
+            // A proxy cannot form a pair with itself.
+            if (proxyId == _queryProxyId)
+            {
+                return true;
+            }
+
+            // Grow the pair buffer as needed.
+            if (_pairCount == _pairCapacity)
+            {
+                Pair[] oldBuffer = _pairBuffer;
+                _pairCapacity *= 2;
+                _pairBuffer = new Pair[_pairCapacity];
+                Array.Copy(oldBuffer, _pairBuffer, _pairCount);
+            }
+
+            _pairBuffer[_pairCount].ProxyIdA = Math.Min(proxyId, _queryProxyId);
+            _pairBuffer[_pairCount].ProxyIdB = Math.Max(proxyId, _queryProxyId);
+            ++_pairCount;
+
+            return true;
+        }
+
 
         /// <summary>
         /// Get the AABB for a proxy.
@@ -183,7 +242,7 @@ namespace FarseerPhysics.Collision
             for (int j = 0; j < _moveCount; ++j)
             {
                 _queryProxyId = _moveBuffer[j];
-                if (_queryProxyId == -1)
+                if (_queryProxyId == NullProxy)
                 {
                     continue;
                 }
@@ -255,70 +314,11 @@ namespace FarseerPhysics.Collision
             _tree.RayCast(callback, ref input);
         }
 
-        public void TouchProxy(int proxyId)
-        {
-            BufferMove(proxyId);
-        }
-
         #endregion
 
-        /// <summary>
-        /// Compute the height of the embedded tree.
-        /// </summary>
-        /// <returns></returns>
-        public int ComputeHeight()
+        public int TreeHeight
         {
-            return _tree.ComputeHeight();
-        }
-
-        private void BufferMove(int proxyId)
-        {
-            if (_moveCount == _moveCapacity)
-            {
-                int[] oldBuffer = _moveBuffer;
-                _moveCapacity *= 2;
-                _moveBuffer = new int[_moveCapacity];
-                Array.Copy(oldBuffer, _moveBuffer, _moveCount);
-            }
-
-            _moveBuffer[_moveCount] = proxyId;
-            ++_moveCount;
-        }
-
-        private void UnBufferMove(int proxyId)
-        {
-            for (int i = 0; i < _moveCount; ++i)
-            {
-                if (_moveBuffer[i] == proxyId)
-                {
-                    _moveBuffer[i] = -1;
-                    return;
-                }
-            }
-        }
-
-        private bool QueryCallback(int proxyId)
-        {
-            // A proxy cannot form a pair with itself.
-            if (proxyId == _queryProxyId)
-            {
-                return true;
-            }
-
-            // Grow the pair buffer as needed.
-            if (_pairCount == _pairCapacity)
-            {
-                Pair[] oldBuffer = _pairBuffer;
-                _pairCapacity *= 2;
-                _pairBuffer = new Pair[_pairCapacity];
-                Array.Copy(oldBuffer, _pairBuffer, _pairCount);
-            }
-
-            _pairBuffer[_pairCount].ProxyIdA = Math.Min(proxyId, _queryProxyId);
-            _pairBuffer[_pairCount].ProxyIdB = Math.Max(proxyId, _queryProxyId);
-            ++_pairCount;
-
-            return true;
+            get { return _tree.GetHeight(); }
         }
     }
 }

@@ -1,12 +1,9 @@
 /*
 * Farseer Physics Engine based on Box2D.XNA port:
-* Copyright (c) 2010 Ian Qvist
+* Copyright (c) 2011 Ian Qvist
 * 
-* Box2D.XNA port of Box2D:
-* Copyright (c) 2009 Brandon Furtwangler, Nathan Furtwangler
-*
 * Original source Box2D:
-* Copyright (c) 2006-2009 Erin Catto http://www.box2d.org 
+* Copyright (c) 2006-2011 Erin Catto http://www.box2d.org 
 * 
 * This software is provided 'as-is', without any express or implied 
 * warranty.  In no event will the authors be held liable for any damages 
@@ -35,9 +32,9 @@ namespace FarseerPhysics.TestBed.Tests
 {
     public class GearsTest : Test
     {
-        private FixedRevoluteJoint _joint1;
-        private FixedRevoluteJoint _joint2;
-        private FixedPrismaticJoint _joint3;
+        //private FixedRevoluteJoint _joint1;
+        //private FixedRevoluteJoint _joint2;
+        //private FixedPrismaticJoint _joint3;
 
         private GearJoint _joint4;
         private GearJoint _joint5;
@@ -67,28 +64,28 @@ namespace FarseerPhysics.TestBed.Tests
                 body3.Position = new Vector2(2.5f, 12.0f);
                 body3.CreateFixture(polygonBox);
 
-                // Fix first circle
-                _joint1 = new FixedRevoluteJoint(body1, Vector2.Zero, body1.Position);
-                World.AddJoint(_joint1);
+                //// Fix first circle
+                //_joint1 = new FixedRevoluteJoint(body1, Vector2.Zero, body1.Position);
+                //World.AddJoint(_joint1);
 
-                // Fix second circle
-                _joint2 = new FixedRevoluteJoint(body2, Vector2.Zero, body2.Position);
-                World.AddJoint(_joint2);
+                //// Fix second circle
+                //_joint2 = new FixedRevoluteJoint(body2, Vector2.Zero, body2.Position);
+                //World.AddJoint(_joint2);
 
-                // Fix rectangle
-                _joint3 = new FixedPrismaticJoint(body3, body3.Position, new Vector2(0.0f, 1.0f));
-                _joint3.LowerLimit = -5.0f;
-                _joint3.UpperLimit = 5.0f;
-                _joint3.LimitEnabled = true;
-                World.AddJoint(_joint3);
+                //// Fix rectangle
+                //_joint3 = new FixedPrismaticJoint(body3, body3.Position, new Vector2(0.0f, 1.0f));
+                //_joint3.LowerLimit = -5.0f;
+                //_joint3.UpperLimit = 5.0f;
+                //_joint3.LimitEnabled = true;
+                //World.AddJoint(_joint3);
 
-                // Attach first and second circle together with a gear joint
-                _joint4 = new GearJoint(_joint1, _joint2, circle2.Radius / circle1.Radius);
-                World.AddJoint(_joint4);
+                //// Attach first and second circle together with a gear joint
+                //_joint4 = new GearJoint(_joint1, _joint2, circle2.Radius / circle1.Radius);
+                //World.AddJoint(_joint4);
 
-                // Attach second and rectangle together with a gear joint
-                _joint5 = new GearJoint(_joint2, _joint3, -1.0f / circle2.Radius);
-                World.AddJoint(_joint5);
+                //// Attach second and rectangle together with a gear joint
+                //_joint5 = new GearJoint(_joint2, _joint3, -1.0f / circle2.Radius);
+                //World.AddJoint(_joint5);
             }
         }
 
@@ -97,13 +94,13 @@ namespace FarseerPhysics.TestBed.Tests
             base.Update(settings, gameTime);
 
             float ratio = _joint4.Ratio;
-            float value = _joint1.JointAngle + ratio * _joint2.JointAngle;
-            DebugView.DrawString(50, TextLine, "theta1 + {0} * theta2 = {1}", ratio, value);
+            //float value = _joint1.JointAngle + ratio * _joint2.JointAngle;
+            //DebugView.DrawString(50, TextLine, "theta1 + {0} * theta2 = {1}", ratio, value);
             TextLine += 15;
 
             ratio = _joint5.Ratio;
-            value = _joint2.JointAngle + ratio * _joint3.JointTranslation;
-            DebugView.DrawString(50, TextLine, "theta2 + {0} * delta = {1}", ratio, value);
+            //value = _joint2.JointAngle + ratio * _joint3.JointTranslation;
+            //DebugView.DrawString(50, TextLine, "theta2 + {0} * delta = {1}", ratio, value);
             TextLine += 15;
         }
 

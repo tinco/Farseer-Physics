@@ -1,12 +1,9 @@
 ﻿/*
 * Farseer Physics Engine based on Box2D.XNA port:
-* Copyright (c) 2010 Ian Qvist
+* Copyright (c) 2011 Ian Qvist
 * 
-* Box2D.XNA port of Box2D:
-* Copyright (c) 2009 Brandon Furtwangler, Nathan Furtwangler
-*
 * Original source Box2D:
-* Copyright (c) 2006-2009 Erin Catto http://www.box2d.org 
+* Copyright (c) 2006-2011 Erin Catto http://www.box2d.org 
 * 
 * This software is provided 'as-is', without any express or implied 
 * warranty.  In no event will the authors be held liable for any damages 
@@ -60,16 +57,16 @@ namespace FarseerPhysics.TestBed.Tests
             tile.SetAsBox(1.0f, 1.0f, new Vector2(8.0f, 3.0f), 0.0f);
             ground.CreateFixture(tile);
 
-            // Square made from an edge loop.
+            // Square made from an edge chain.
             Vertices vertices = new Vertices(4);
             vertices.Add(new Vector2(-1.0f, 3.0f));
             vertices.Add(new Vector2(1.0f, 3.0f));
             vertices.Add(new Vector2(1.0f, 5.0f));
             vertices.Add(new Vector2(-1.0f, 5.0f));
-            LoopShape loopShape = new LoopShape(vertices);
-            ground.CreateFixture(loopShape);
+            ChainShape chainShape = new ChainShape(vertices);
+            ground.CreateFixture(chainShape);
 
-            // Edge loop.
+            // Edge chain.
             vertices = new Vertices(10);
             vertices.Add(new Vector2(0.0f, 0.0f));
             vertices.Add(new Vector2(6.0f, 0.0f));
@@ -81,7 +78,7 @@ namespace FarseerPhysics.TestBed.Tests
             vertices.Add(new Vector2(-6.0f, 2.0f));
             vertices.Add(new Vector2(-6.0f, 0.0f));
 
-            BodyFactory.CreateLoopShape(World, vertices, new Vector2(-10, 4));
+            BodyFactory.CreateChainShape(World, vertices, new Vector2(-10, 4));
 
             // Square character
             Body squareCharacter = BodyFactory.CreateRectangle(World, 1, 1, 20);

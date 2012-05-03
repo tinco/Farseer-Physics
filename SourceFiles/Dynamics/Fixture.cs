@@ -1,12 +1,9 @@
 /*
 * Farseer Physics Engine based on Box2D.XNA port:
-* Copyright (c) 2010 Ian Qvist
+* Copyright (c) 2011 Ian Qvist
 * 
-* Box2D.XNA port of Box2D:
-* Copyright (c) 2009 Brandon Furtwangler, Nathan Furtwangler
-*
 * Original source Box2D:
-* Copyright (c) 2006-2009 Erin Catto http://www.box2d.org 
+* Copyright (c) 2006-2011 Erin Catto http://www.box2d.org 
 * 
 * This software is provided 'as-is', without any express or implied 
 * warranty.  In no event will the authors be held liable for any damages 
@@ -126,9 +123,9 @@ namespace FarseerPhysics.Dynamics
         internal Dictionary<int, bool> _collisionIgnores;
 
 #if USE_IGNORE_CCD_CATEGORIES
-		public Category IgnoreCCDWith;
+        public Category IgnoreCCDWith;
 #endif
-		private float _friction;
+        private float _friction;
         private float _restitution;
 
         internal Fixture()
@@ -142,21 +139,21 @@ namespace FarseerPhysics.Dynamics
 
         public Fixture(Body body, Shape shape, object userData)
         {
-			_collisionCategories = Settings.DefaultFixtureCollisionCategories;
-			_collidesWith = Settings.DefaultFixtureCollidesWith;
+            _collisionCategories = Settings.DefaultFixtureCollisionCategories;
+            _collidesWith = Settings.DefaultFixtureCollidesWith;
             _collisionGroup = 0;
 
 #if USE_IGNORE_CCD_CATEGORIES
-			IgnoreCCDWith = Settings.DefaultFixtureIgnoreCCDWith;
+            IgnoreCCDWith = Settings.DefaultFixtureIgnoreCCDWith;
 #endif
 
             //Fixture defaults
             Friction = 0.2f;
             Restitution = 0;
 
+            Body = body;
             IsSensor = false;
 
-            Body = body;
             UserData = userData;
 
             if (Settings.ConserveMemory)
@@ -251,11 +248,21 @@ namespace FarseerPhysics.Dynamics
         /// <value>The shape.</value>
         public Shape Shape { get; internal set; }
 
+        private bool _isSensor;
+
         /// <summary>
         /// Gets or sets a value indicating whether this fixture is a sensor.
         /// </summary>
         /// <value><c>true</c> if this instance is a sensor; otherwise, <c>false</c>.</value>
-        public bool IsSensor { get; set; }
+        public bool IsSensor
+        {
+            get { return _isSensor; }
+            set
+            {
+                Body.Awake = true;
+                _isSensor = value;
+            }
+        }
 
         /// <summary>
         /// Get the parent body of this fixture. This is null if the fixture is not attached.
@@ -276,7 +283,8 @@ namespace FarseerPhysics.Dynamics
         public long UserBits { get; set; }
 
         /// <summary>
-        /// Get or set the coefficient of friction.
+        /// Set the coefficient of friction. This will _not_ change the friction of
+        /// existing contacts.
         /// </summary>
         /// <value>The friction.</value>
         public float Friction
@@ -291,7 +299,8 @@ namespace FarseerPhysics.Dynamics
         }
 
         /// <summary>
-        /// Get or set the coefficient of restitution.
+        /// Set the coefficient of restitution. This will _not_ change the restitution of
+        /// existing contacts.
         /// </summary>
         /// <value>The restitution.</value>
         public float Restitution
@@ -558,9 +567,10 @@ namespace FarseerPhysics.Dynamics
             {
                 FixtureProxy proxy = new FixtureProxy();
                 Shape.ComputeAABB(out proxy.AABB, ref xf, i);
-
                 proxy.Fixture = this;
                 proxy.ChildIndex = i;
+
+                //FPE note: This line needs to be after the previous two because FixtureProxy is a struct
                 proxy.ProxyId = broadPhase.AddProxy(ref proxy);
 
                 Proxies[i] = proxy;
@@ -597,7 +607,7 @@ namespace FarseerPhysics.Dynamics
 
                 proxy.AABB.Combine(ref aabb1, ref aabb2);
 
-                Vector2 displacement = transform2.Position - transform1.Position;
+                Vector2 displacement = transform2.p - transform1.p;
 
                 broadPhase.MoveProxy(proxy.ProxyId, ref proxy.AABB, displacement);
             }

@@ -21,7 +21,6 @@
 */
 
 using FarseerPhysics.Collision;
-using FarseerPhysics.Collision.Shapes;
 using FarseerPhysics.Dynamics;
 using FarseerPhysics.Dynamics.Contacts;
 using FarseerPhysics.Factories;
@@ -30,40 +29,30 @@ using Microsoft.Xna.Framework;
 
 namespace FarseerPhysics.TestBed.Tests
 {
-    public class OneSidedPlatformTest : Test
+    public class ConveyorBeltTest : Test
     {
-        private Fixture _character;
-        private Fixture _platform;
-        private float _radius, _top;
+        private Fixture m_platform;
 
-        private OneSidedPlatformTest()
+        ConveyorBeltTest()
         {
-            //Ground
-            BodyFactory.CreateEdge(World, new Vector2(-40.0f, 0.0f), new Vector2(40.0f, 0.0f));
+            // Ground
+            {
+                Body ground = BodyFactory.CreateBody(World);
+                FixtureFactory.AttachEdge(new Vector2(-20.0f, 0.0f), new Vector2(20.0f, 0.0f), ground);
+            }
 
             // Platform
             {
-                Body body = BodyFactory.CreateBody(World);
-                body.Position = new Vector2(0.0f, 10.0f);
-
-                PolygonShape shape = new PolygonShape(1);
-                shape.SetAsBox(3.0f, 0.5f);
-                _platform = body.CreateFixture(shape);
-
-                _top = 10.0f + 0.5f;
+                Body body = BodyFactory.CreateBody(World, new Vector2(-5, 5));
+                m_platform = FixtureFactory.AttachRectangle(20, 1f, 1, Vector2.Zero, body);
+                m_platform.Friction = 0.8f;
             }
 
-            // Actor
+            // Boxes
+            for (int i = 0; i < 5; ++i)
             {
-                Body body = BodyFactory.CreateBody(World);
+                Body body = BodyFactory.CreateRectangle(World, 1f, 1f, 20, new Vector2(-10.0f + 2.0f * i, 7.0f));
                 body.BodyType = BodyType.Dynamic;
-                body.Position = new Vector2(0.0f, 12.0f);
-
-                _radius = 0.5f;
-                CircleShape shape = new CircleShape(_radius, 20);
-                _character = body.CreateFixture(shape);
-
-                body.LinearVelocity = new Vector2(0.0f, -50.0f);
             }
         }
 
@@ -74,27 +63,20 @@ namespace FarseerPhysics.TestBed.Tests
             Fixture fixtureA = contact.FixtureA;
             Fixture fixtureB = contact.FixtureB;
 
-            if (fixtureA != _platform && fixtureA != _character)
+            if (fixtureA == m_platform)
             {
-                return;
+                contact.TangentSpeed = 5.0f;
             }
 
-            if (fixtureB != _platform && fixtureB != _character)
+            if (fixtureB == m_platform)
             {
-                return;
-            }
-
-            Vector2 position = _character.Body.Position;
-
-            if (position.Y < _top + _radius - 3.0f * Settings.LinearSlop)
-            {
-                contact.Enabled = false;
+                contact.TangentSpeed = -5.0f;
             }
         }
 
         internal static Test Create()
         {
-            return new OneSidedPlatformTest();
+            return new ConveyorBeltTest();
         }
     }
 }

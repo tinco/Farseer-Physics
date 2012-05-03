@@ -1,12 +1,9 @@
 /*
 * Farseer Physics Engine based on Box2D.XNA port:
-* Copyright (c) 2010 Ian Qvist
+* Copyright (c) 2011 Ian Qvist
 * 
-* Box2D.XNA port of Box2D:
-* Copyright (c) 2009 Brandon Furtwangler, Nathan Furtwangler
-*
 * Original source Box2D:
-* Copyright (c) 2006-2009 Erin Catto http://www.box2d.org 
+* Copyright (c) 2006-2011 Erin Catto http://www.box2d.org 
 * 
 * This software is provided 'as-is', without any express or implied 
 * warranty.  In no event will the authors be held liable for any damages 
@@ -77,33 +74,33 @@ namespace FarseerPhysics.TestBed.Tests
 
                 _bodies[3].CreateFixture(shape);
 
-                FixedDistanceJoint dj = new FixedDistanceJoint(_bodies[0], new Vector2(-0.5f, -0.5f),
-                                                               new Vector2(-10.0f, 0.0f));
-                _joints[0] = dj;
-                dj.Frequency = 2.0f;
-                dj.DampingRatio = 0.0f;
-                World.AddJoint(_joints[0]);
+                //FixedDistanceJoint dj = new FixedDistanceJoint(_bodies[0], new Vector2(-0.5f, -0.5f),
+                //                                               new Vector2(-10.0f, 0.0f));
+                //_joints[0] = dj;
+                //dj.Frequency = 2.0f;
+                //dj.DampingRatio = 0.0f;
+                //World.AddJoint(_joints[0]);
 
-                FixedDistanceJoint dj1 = new FixedDistanceJoint(_bodies[1], new Vector2(0.5f, -0.5f),
-                                                                new Vector2(10.0f, 0.0f));
-                _joints[1] = dj1;
-                dj1.Frequency = 2.0f;
-                dj1.DampingRatio = 0.0f;
-                World.AddJoint(_joints[1]);
+                //FixedDistanceJoint dj1 = new FixedDistanceJoint(_bodies[1], new Vector2(0.5f, -0.5f),
+                //                                                new Vector2(10.0f, 0.0f));
+                //_joints[1] = dj1;
+                //dj1.Frequency = 2.0f;
+                //dj1.DampingRatio = 0.0f;
+                //World.AddJoint(_joints[1]);
 
-                FixedDistanceJoint dj2 = new FixedDistanceJoint(_bodies[2], new Vector2(0.5f, 0.5f),
-                                                                new Vector2(10.0f, 20.0f));
-                _joints[2] = dj2;
-                dj2.Frequency = 2.0f;
-                dj2.DampingRatio = 0.0f;
-                World.AddJoint(_joints[2]);
+                //FixedDistanceJoint dj2 = new FixedDistanceJoint(_bodies[2], new Vector2(0.5f, 0.5f),
+                //                                                new Vector2(10.0f, 20.0f));
+                //_joints[2] = dj2;
+                //dj2.Frequency = 2.0f;
+                //dj2.DampingRatio = 0.0f;
+                //World.AddJoint(_joints[2]);
 
-                FixedDistanceJoint dj3 = new FixedDistanceJoint(_bodies[3], new Vector2(-0.5f, 0.5f),
-                                                                new Vector2(-10.0f, 20.0f));
-                _joints[3] = dj3;
-                dj3.Frequency = 2.0f;
-                dj3.DampingRatio = 0.0f;
-                World.AddJoint(_joints[3]);
+                //FixedDistanceJoint dj3 = new FixedDistanceJoint(_bodies[3], new Vector2(-0.5f, 0.5f),
+                //                                                new Vector2(-10.0f, 20.0f));
+                //_joints[3] = dj3;
+                //dj3.Frequency = 2.0f;
+                //dj3.DampingRatio = 0.0f;
+                //World.AddJoint(_joints[3]);
 
                 DistanceJoint dj4 = new DistanceJoint(_bodies[0], _bodies[1], Vector2.Zero,
                                                       Vector2.Zero);
@@ -142,8 +139,8 @@ namespace FarseerPhysics.TestBed.Tests
 
         private void JointRemovedFired(Joint joint)
         {
-            if (joint is FixedDistanceJoint || joint is DistanceJoint)
-                _removedJoints++;
+            //if (joint is FixedDistanceJoint || joint is DistanceJoint)
+            //    _removedJoints++;
         }
 
         public override void Keyboard(KeyboardManager keyboardManager)

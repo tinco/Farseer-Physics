@@ -1,12 +1,9 @@
 /*
 * Farseer Physics Engine based on Box2D.XNA port:
-* Copyright (c) 2010 Ian Qvist
+* Copyright (c) 2011 Ian Qvist
 * 
-* Box2D.XNA port of Box2D:
-* Copyright (c) 2009 Brandon Furtwangler, Nathan Furtwangler
-*
 * Original source Box2D:
-* Copyright (c) 2006-2009 Erin Catto http://www.box2d.org 
+* Copyright (c) 2006-2011 Erin Catto http://www.box2d.org 
 * 
 * This software is provided 'as-is', without any express or implied 
 * warranty.  In no event will the authors be held liable for any damages 
@@ -61,8 +58,8 @@ namespace FarseerPhysics.TestBed.Tests
             }
 
             //Fix the first chainlink to the world
-            FixedRevoluteJoint fixedJoint = new FixedRevoluteJoint(chainLinks[0], Vector2.Zero, chainLinks[0].Position);
-            World.AddJoint(fixedJoint);
+            //FixedRevoluteJoint fixedJoint = new FixedRevoluteJoint(chainLinks[0], Vector2.Zero, chainLinks[0].Position);
+            //World.AddJoint(fixedJoint);
 
             //Attach all the chainlinks together with a revolute joint
             List<RevoluteJoint> joints = PathManager.AttachBodiesWithRevoluteJoint(World, chainLinks,

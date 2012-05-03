@@ -1,12 +1,9 @@
 /*
 * Farseer Physics Engine based on Box2D.XNA port:
-* Copyright (c) 2010 Ian Qvist
+* Copyright (c) 2011 Ian Qvist
 * 
-* Box2D.XNA port of Box2D:
-* Copyright (c) 2009 Brandon Furtwangler, Nathan Furtwangler
-*
 * Original source Box2D:
-* Copyright (c) 2006-2009 Erin Catto http://www.box2d.org 
+* Copyright (c) 2006-2011 Erin Catto http://www.box2d.org 
 * 
 * This software is provided 'as-is', without any express or implied 
 * warranty.  In no event will the authors be held liable for any damages 
@@ -75,15 +72,15 @@ namespace FarseerPhysics.TestBed.Tests
                 rjd.MotorEnabled = true;
                 World.AddJoint(rjd);
 
-                FixedPrismaticJoint pjd = new FixedPrismaticJoint(_platform, new Vector2(0.0f, 5.0f),
-                                                                  new Vector2(1.0f, 0.0f));
-                pjd.MaxMotorForce = 1000.0f;
-                pjd.MotorEnabled = true;
-                pjd.LowerLimit = -10.0f;
-                pjd.UpperLimit = 10.0f;
-                pjd.LimitEnabled = true;
+                //FixedPrismaticJoint pjd = new FixedPrismaticJoint(_platform, new Vector2(0.0f, 5.0f),
+                //                                                  new Vector2(1.0f, 0.0f));
+                //pjd.MaxMotorForce = 1000.0f;
+                //pjd.MotorEnabled = true;
+                //pjd.LowerLimit = -10.0f;
+                //pjd.UpperLimit = 10.0f;
+                //pjd.LimitEnabled = true;
 
-                World.AddJoint(pjd);
+                //World.AddJoint(pjd);
 
                 _speed = 3.0f;
             }
@@ -129,7 +126,7 @@ namespace FarseerPhysics.TestBed.Tests
             {
                 Transform tf;
                 _platform.GetTransform(out tf);
-                Vector2 p = tf.Position;
+                Vector2 p = tf.p;
                 Vector2 v = _platform.LinearVelocity;
 
                 if ((p.X < -10.0f && v.X < 0.0f) ||

@@ -1,12 +1,9 @@
 ﻿/*
 * Farseer Physics Engine based on Box2D.XNA port:
-* Copyright (c) 2010 Ian Qvist
+* Copyright (c) 2011 Ian Qvist
 * 
-* Box2D.XNA port of Box2D:
-* Copyright (c) 2009 Brandon Furtwangler, Nathan Furtwangler
-*
 * Original source Box2D:
-* Copyright (c) 2006-2009 Erin Catto http://www.box2d.org 
+* Copyright (c) 2006-2011 Erin Catto http://www.box2d.org 
 * 
 * This software is provided 'as-is', without any express or implied 
 * warranty.  In no event will the authors be held liable for any damages 
@@ -100,7 +97,7 @@ namespace FarseerPhysics.Collision.Shapes
         Circle = 0,
         Edge = 1,
         Polygon = 2,
-        Loop = 3,
+        Chain = 3,
         TypeCount = 4,
     }
 
@@ -201,7 +198,7 @@ namespace FarseerPhysics.Collision.Shapes
         /// Compute the mass properties of this shape using its dimensions and density.
         /// The inertia tensor is computed about the local origin, not the centroid.
         /// </summary>
-        public abstract void ComputeProperties();
+        protected abstract void ComputeProperties();
 
         public bool CompareTo(Shape shape)
         {

@@ -1,12 +1,9 @@
 /*
 * Farseer Physics Engine based on Box2D.XNA port:
-* Copyright (c) 2010 Ian Qvist
+* Copyright (c) 2011 Ian Qvist
 * 
-* Box2D.XNA port of Box2D:
-* Copyright (c) 2009 Brandon Furtwangler, Nathan Furtwangler
-*
 * Original source Box2D:
-* Copyright (c) 2006-2009 Erin Catto http://www.box2d.org 
+* Copyright (c) 2006-2011 Erin Catto http://www.box2d.org 
 * 
 * This software is provided 'as-is', without any express or implied 
 * warranty.  In no event will the authors be held liable for any damages 
@@ -26,6 +23,7 @@
 using FarseerPhysics.Collision;
 using FarseerPhysics.Collision.Shapes;
 using FarseerPhysics.Common;
+using FarseerPhysics.Dynamics.Contacts;
 using FarseerPhysics.TestBed.Framework;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
@@ -51,7 +49,9 @@ namespace FarseerPhysics.TestBed.Tests
 
             {
                 _polygonB.SetAsBox(0.5f, 0.5f);
-                _positionB = new Vector2(19.345284f, 1.5632932f);
+                //_positionB = new Vector2(19.345284f, 1.5632932f);
+                _positionB = new Vector2(0.345284f, 0.5632932f);
+
                 _angleB = 1.9160721f;
                 _transformB.Set(_positionB, _angleB);
             }
@@ -69,7 +69,7 @@ namespace FarseerPhysics.TestBed.Tests
 
             Vector2 normal;
             FixedArray2<Vector2> points;
-            Collision.Collision.GetWorldManifold(ref manifold, ref _transformA, _polygonA.Radius,
+            ContactSolver.WorldManifold.Initialize(ref manifold, ref _transformA, _polygonA.Radius,
                                                  ref _transformB, _polygonB.Radius, out normal, out points);
 
             DebugView.DrawString(50, TextLine, "Point count = {0:n0}", manifold.PointCount);
@@ -80,20 +80,23 @@ namespace FarseerPhysics.TestBed.Tests
                 Vector2[] v = new Vector2[Settings.MaxPolygonVertices];
                 for (int i = 0; i < _polygonA.Vertices.Count; ++i)
                 {
-                    v[i] = MathUtils.Multiply(ref _transformA, _polygonA.Vertices[i]);
+                    v[i] = MathUtils.Mul(ref _transformA, _polygonA.Vertices[i]);
                 }
                 DebugView.DrawPolygon(v, _polygonA.Vertices.Count, color);
 
                 for (int i = 0; i < _polygonB.Vertices.Count; ++i)
                 {
-                    v[i] = MathUtils.Multiply(ref _transformB, _polygonB.Vertices[i]);
+                    v[i] = MathUtils.Mul(ref _transformB, _polygonB.Vertices[i]);
                 }
                 DebugView.DrawPolygon(v, _polygonB.Vertices.Count, color);
             }
 
             for (int i = 0; i < manifold.PointCount; ++i)
             {
+                TextLine += 15;
                 DebugView.DrawPoint(points[i], 0.1f, new Color(0.9f, 0.3f, 0.3f));
+                DebugView.DrawString(50, TextLine, "{0}", points[i].ToString());
+                TextLine += 15;
             }
             DebugView.EndCustomDraw();
         }

@@ -1,12 +1,9 @@
 /*
 * Farseer Physics Engine based on Box2D.XNA port:
-* Copyright (c) 2010 Ian Qvist
+* Copyright (c) 2011 Ian Qvist
 * 
-* Box2D.XNA port of Box2D:
-* Copyright (c) 2009 Brandon Furtwangler, Nathan Furtwangler
-*
 * Original source Box2D:
-* Copyright (c) 2006-2009 Erin Catto http://www.box2d.org 
+* Copyright (c) 2006-2011 Erin Catto http://www.box2d.org 
 * 
 * This software is provided 'as-is', without any express or implied 
 * warranty.  In no event will the authors be held liable for any damages 
@@ -101,9 +98,9 @@ namespace FarseerPhysics.TestBed.Tests
             }
 
             Vector2 anchor = new Vector2(-2.0f, 1.0f);
-            FixedRevoluteJoint jd = new FixedRevoluteJoint(b3, b3.GetLocalPoint(anchor), anchor);
-            jd.CollideConnected = true;
-            World.AddJoint(jd);
+            //FixedRevoluteJoint jd = new FixedRevoluteJoint(b3, b3.GetLocalPoint(anchor), anchor);
+            //jd.CollideConnected = true;
+            //World.AddJoint(jd);
 
             Body b4;
             {
@@ -118,8 +115,8 @@ namespace FarseerPhysics.TestBed.Tests
             }
 
             anchor = new Vector2(-7.0f, 15.0f);
-            FixedRevoluteJoint jd2 = new FixedRevoluteJoint(b4, b4.GetLocalPoint(anchor), anchor);
-            World.AddJoint(jd2);
+            //FixedRevoluteJoint jd2 = new FixedRevoluteJoint(b4, b4.GetLocalPoint(anchor), anchor);
+            //World.AddJoint(jd2);
 
             Body b5;
             {
@@ -147,8 +144,8 @@ namespace FarseerPhysics.TestBed.Tests
             }
 
             anchor = new Vector2(6.0f, 2.0f);
-            FixedRevoluteJoint jd3 = new FixedRevoluteJoint(b5, b5.GetLocalPoint(anchor), anchor);
-            World.AddJoint(jd3);
+            //FixedRevoluteJoint jd3 = new FixedRevoluteJoint(b5, b5.GetLocalPoint(anchor), anchor);
+            //World.AddJoint(jd3);
 
             Body b6;
             {

@@ -60,22 +60,22 @@ namespace FarseerPhysics.Dynamics.Joints
             return 0;
         }
 
-        internal override void InitVelocityConstraints(ref TimeStep step)
+        internal override void InitVelocityConstraints(ref SolverData data)
         {
             _jointError = BodyA.Sweep.A - TargetAngle;
 
-            _bias = -BiasFactor * step.inv_dt * _jointError;
+            _bias = -BiasFactor * data.step.inv_dt * _jointError;
 
             _massFactor = (1 - Softness) / (BodyA.InvI);
         }
 
-        internal override void SolveVelocityConstraints(ref TimeStep step)
+        internal override void SolveVelocityConstraints(ref SolverData data)
         {
             float p = (_bias - BodyA.AngularVelocity) * _massFactor;
             BodyA.AngularVelocity += BodyA.InvI * Math.Sign(p) * Math.Min(Math.Abs(p), MaxImpulse);
         }
 
-        internal override bool SolvePositionConstraints()
+        internal override bool SolvePositionConstraints(ref SolverData data)
         {
             //no position solving for this joint
             return true;

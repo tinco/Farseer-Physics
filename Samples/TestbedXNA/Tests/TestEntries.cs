@@ -1,12 +1,9 @@
 ﻿/*
 * Farseer Physics Engine based on Box2D.XNA port:
-* Copyright (c) 2010 Ian Qvist
+* Copyright (c) 2011 Ian Qvist
 * 
-* Box2D.XNA port of Box2D:
-* Copyright (c) 2009 Brandon Furtwangler, Nathan Furtwangler
-*
 * Original source Box2D:
-* Copyright (c) 2006-2009 Erin Catto http://www.box2d.org 
+* Copyright (c) 2006-2011 Erin Catto http://www.box2d.org 
 * 
 * This software is provided 'as-is', without any express or implied 
 * warranty.  In no event will the authors be held liable for any damages 
@@ -31,6 +28,15 @@ namespace FarseerPhysics.TestBed.Tests
     {
         public static TestEntry[] TestList =
             {
+                new TestEntry {Name = "Rope Test", CreateFcn = RopeTest.Create},
+                new TestEntry {Name = "Car test", CreateFcn = CarTest.Create},
+                new TestEntry {Name = "Conveyorbelt Test", CreateFcn = ConveyorBeltTest.Create},
+                new TestEntry {Name = "Lock Test", CreateFcn = LockTest.Create},
+                new TestEntry {Name = "Deletion test", CreateFcn = DeletionTest.Create},
+                new TestEntry {Name = "Apply Force", CreateFcn = ApplyForceTest.Create},
+                new TestEntry {Name = "PolyCollision", CreateFcn = PolyCollisionTest.Create},
+                new TestEntry {Name = "Tiles", CreateFcn = TilesTest.Create},
+
                 //Original tests
                 new TestEntry {Name = "Car test", CreateFcn = CarTest.Create},
                 new TestEntry {Name = "Rope Test", CreateFcn = RopeTest.Create},
@@ -69,7 +75,7 @@ namespace FarseerPhysics.TestBed.Tests
                 new TestEntry {Name = "Dominos", CreateFcn = DominosTest.Create},
                 new TestEntry {Name = "Dynamic Tree", CreateFcn = DynamicTreeTest.Create},
                 new TestEntry {Name = "Gears", CreateFcn = GearsTest.Create},
-                new TestEntry {Name = "Line Joint", CreateFcn = LineJointTest.Create},
+                new TestEntry {Name = "Wheel Joint", CreateFcn = WheelJointTest.Create},
                 new TestEntry {Name = "Pulleys", CreateFcn = PulleysTest.Create},
                 new TestEntry {Name = "Revolute", CreateFcn = RevoluteTest.Create},
                 new TestEntry {Name = "Sensor Test", CreateFcn = SensorTest.Create},
