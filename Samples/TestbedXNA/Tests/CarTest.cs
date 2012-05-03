@@ -35,231 +35,262 @@ namespace FarseerPhysics.TestBed.Tests
     public class CarTest : Test
     {
         private Body _car;
+        public float steeringAngle;
+        private float engineSpeed;
 
-        private float _hz;
-        private float _speed;
-        private WheelJoint _spring1;
-        private WheelJoint _spring2;
-        private Body _wheel1;
-        private Body _wheel2;
-        private float _zeta;
+        public Body LeftWheel, RightWheel, LeftRearWheel, RightRearWheel;
+        public RevoluteJoint leftJoint, rightJoint;
+        public WeldJoint LeftRearJoint, RightRearJoint;
+
+
+        /** Defaults **/
+        private const float DEFAULT_MAX_STEER_ANGLE = (float)(Math.PI / 5);
+        private const int DEFAULT_HORSEPOWER = 120;
+        private const float DEFAULT_STEER_SPEED = 10f;
+        private const float DEFAULT_SIDEWAYS_FRICTION_FORCE = 10f;
+
+        private const float DEFAULT_CAR_WIDTH = 3f;
+        private const float DEFAULT_CAR_HEIGHT = 5f;
+        private const float DEFAULT_WHEEL_WIDTH = 0.4f;
+        private const float DEFAULT_WHEEL_HEIGHT = 1f;
+
+        private static readonly Vector2 DEFAULT_LR_WHEELPOS = new Vector2(-1.5f, 1.90f);
+        private static readonly Vector2 DEFAULT_RR_WHEELPOS = new Vector2(1.5f, 1.9f);
+        private static readonly Vector2 DEFAULT_LF_WHEELPOS = new Vector2(-1.5f, -1.9f);
+        private static readonly Vector2 DEFAULT_RF_WHEELPOS = new Vector2(1.5f, -1.9f);
 
         private CarTest()
         {
-            _hz = 4.0f;
-            _zeta = 0.7f;
-            _speed = 50.0f;
+            steeringAngle = 0;
+            engineSpeed = 0;
 
-            Body ground = new Body(World);
+
+            World.Gravity = Vector2.Zero;
+
+            var body = BodyFactory.CreateBody(World);
+            _car = body;
+
+            body.LinearDamping = 1f;
+            body.AngularDamping = 1f;
+            body.Friction = 0;
+            body.BodyType = BodyType.Dynamic;
+
+            // Define wheel bodies
+            LeftWheel = BodyFactory.CreateBody(World);
+            LeftWheel.BodyType = BodyType.Dynamic;
+            LeftWheel.Friction = 1;
+
+
+            RightWheel = BodyFactory.CreateBody(World);
+            RightWheel.BodyType = BodyType.Dynamic;
+            RightWheel.Friction = 1;
+
+            LeftRearWheel = BodyFactory.CreateBody(World);
+            LeftRearWheel.BodyType = BodyType.Dynamic;
+            LeftRearWheel.Friction = 1;
+
+            RightRearWheel = BodyFactory.CreateBody(World);
+            RightRearWheel.BodyType = BodyType.Dynamic;
+            RightRearWheel.Friction = 1;
+
+
+            LeftWheel.Position = DEFAULT_LF_WHEELPOS;
+            RightWheel.Position = DEFAULT_RF_WHEELPOS;
+            LeftRearWheel.Position = DEFAULT_LR_WHEELPOS;
+            RightRearWheel.Position = DEFAULT_RR_WHEELPOS;
+
+            // Define shapes
+            var carShape = new PolygonShape(1);
+            carShape.SetAsBox(DEFAULT_CAR_WIDTH / 2, DEFAULT_CAR_HEIGHT / 2);
+            var fixture = body.CreateFixture(carShape);
+
+            var wheelShape = new PolygonShape(1);
+            wheelShape.SetAsBox(DEFAULT_WHEEL_WIDTH / 2, DEFAULT_WHEEL_HEIGHT / 2);
+
+            LeftWheel.CreateFixture(wheelShape);
+            RightWheel.CreateFixture(wheelShape);
+            LeftRearWheel.CreateFixture(wheelShape);
+            RightRearWheel.CreateFixture(wheelShape);
+
+            // Define joints
+            leftJoint = JointFactory.CreateRevoluteJoint(World, LeftWheel, body, DEFAULT_LF_WHEELPOS); //Position relative to the body
+            //leftJoint = JointFactory.CreateWeldJoint(World, LeftWheel, body, DEFAULT_LF_WHEELPOS); //Position relative to the body
+            leftJoint.MotorEnabled = true;
+            leftJoint.LimitEnabled = true;
+            leftJoint.LowerLimit = -DEFAULT_MAX_STEER_ANGLE;
+            leftJoint.UpperLimit = DEFAULT_MAX_STEER_ANGLE;
+            leftJoint.MaxMotorTorque = 10; //Doesnt seem to do anything*/
+
+            //rightJoint = JointFactory.CreateWeldJoint(World, RightWheel, body, DEFAULT_RF_WHEELPOS); //Position relative to the body
+            rightJoint = JointFactory.CreateRevoluteJoint(World, RightWheel, body, DEFAULT_RF_WHEELPOS); //Position relative to the body
+            rightJoint.MotorEnabled = true;
+            rightJoint.LimitEnabled = true;
+            rightJoint.LowerLimit = -DEFAULT_MAX_STEER_ANGLE;
+            rightJoint.UpperLimit = DEFAULT_MAX_STEER_ANGLE;
+            rightJoint.MaxMotorTorque = 10; //Doesnt seem to do anything*/
+
+            LeftRearJoint = JointFactory.CreateWeldJoint(World, body, LeftRearWheel, DEFAULT_LR_WHEELPOS);
+            //LeftRearJoint.LimitEnabled = true;
+            //LeftRearJoint.LowerLimit = LeftRearJoint.UpperLimit = 0;
+
+            RightRearJoint = JointFactory.CreateWeldJoint(World, body, RightRearWheel, DEFAULT_RR_WHEELPOS);
+            //RightRearJoint.LimitEnabled = true;
+            //RightRearJoint.LowerLimit = RightRearJoint.UpperLimit = 0;
+
+
+        }
+
+        public void SetState(Vector2 position)
+        {
+            _car.SetTransform(ref position, 0);
+            //Debug.WriteLine("Client Position: " + state.Position + " Rotation: " + state.WheelAngle);
+            //Debug.WriteLine("   Own Position: " + PhysicsBody.Position + " Rotation: " + LeftWheel.Rotation);
+            /*var dP = _car.Position - position;
+            var dA = _car.Rotation - 0;
+            _car.SetTransform(ref position, 0);
+            //*/
+            /*LeftWheel.Position = LeftWheel.Position + dP;
+            RightWheel.Position += dP;
+            RightRearWheel.Position += dP;
+            LeftRearWheel.Position += dP;*/
+            /*LeftWheel.Rotation = LeftWheel.Rotation + dA;
+            leftJoint.LocalAnchorA = LeftWheel.GetLocalPoint(LeftWheel.Position);
+            leftJoint.LocalAnchorB = _car.GetLocalPoint(LeftWheel.Position);
+            leftJoint.ReferenceAngle = _car.Rotation - LeftWheel.Rotation;
+            //RightWheel.Position = rotate(RightWheel.Position, position, _car.Rotation);
+            //LeftRearWheel.Position = rotate(LeftRearWheel.Position, state.Position, PhysicsBody.Rotation);
+            //RightRearWheel.Position = rotate(RightRearWheel.Position, state.Position, PhysicsBody.Rotation);
+            /*
+            _car.AngularVelocity = carState.AngularVelocity;
+            _car.LinearVelocity = carState.LinearVelocity;
+            LeftWheel.Rotation = carState.WheelAngle;
+            RightWheel.Rotation = carState.WheelAngle;
+            */
+            // EngineSpeed
+        }
+
+        private Vector2 rotate(Vector2 s, Vector2 o, float angle)
+        {
+            /** lol wut? */
+            var x = 0f;
+            var y = 0f;
+            return new Vector2(x, y);
+        }
+
+        private void killOrthogonalVelocity()
+        {
+            Body[] wheels = { LeftWheel, RightWheel, LeftRearWheel, RightRearWheel };
+            Transform t;
+            foreach (var wheel in wheels)
             {
-                EdgeShape shape = new EdgeShape(new Vector2(-20.0f, 0.0f), new Vector2(20.0f, 0.0f));
-                ground.CreateFixture(shape);
+                var localPoint = Vector2.Zero;
+                var velocity = wheel.GetLinearVelocityFromLocalPoint(localPoint);
+                wheel.GetTransform(out t);
+                var sidewaysAxis = t.q.GetYAxis();
+                wheel.LinearVelocity = (sidewaysAxis * (Vector2.Dot(velocity, sidewaysAxis)));
 
-                float[] hs = new[] { 0.25f, 1.0f, 4.0f, 0.0f, 0.0f, -1.0f, -2.0f, -2.0f, -1.25f, 0.0f };
-
-                float x = 20.0f, y1 = 0.0f;
-                const float dx = 5.0f;
-
-                for (int i = 0; i < 10; ++i)
-                {
-                    float y2 = hs[i];
-                    FixtureFactory.AttachEdge(new Vector2(x, y1), new Vector2(x + dx, y2), ground);
-                    y1 = y2;
-                    x += dx;
-                }
-
-                for (int i = 0; i < 10; ++i)
-                {
-                    float y2 = hs[i];
-                    FixtureFactory.AttachEdge(new Vector2(x, y1), new Vector2(x + dx, y2), ground);
-                    y1 = y2;
-                    x += dx;
-                }
-
-                FixtureFactory.AttachEdge(new Vector2(x, 0.0f), new Vector2(x + 40.0f, 0.0f), ground);
-
-                x += 80.0f;
-                FixtureFactory.AttachEdge(new Vector2(x, 0.0f), new Vector2(x + 40.0f, 0.0f), ground);
-
-                x += 40.0f;
-                FixtureFactory.AttachEdge(new Vector2(x, 0.0f), new Vector2(x + 10.0f, 5.0f), ground);
-
-                x += 20.0f;
-                FixtureFactory.AttachEdge(new Vector2(x, 0.0f), new Vector2(x + 40.0f, 0.0f), ground);
-
-                x += 40.0f;
-                FixtureFactory.AttachEdge(new Vector2(x, 0.0f), new Vector2(x, 20.0f), ground);
-
-                ground.Friction = 0.6f;
-            }
-
-            // Teeter
-            {
-                Body body = new Body(World);
-                body.BodyType = BodyType.Dynamic;
-                body.Position = new Vector2(140.0f, 1.0f);
-
-                PolygonShape box = new PolygonShape(1);
-                box.SetAsBox(10.0f, 0.25f);
-                body.CreateFixture(box);
-
-                RevoluteJoint jd = JointFactory.CreateRevoluteJoint(ground, body, Vector2.Zero);
-                jd.LowerLimit = -8.0f * Settings.Pi / 180.0f;
-                jd.UpperLimit = 8.0f * Settings.Pi / 180.0f;
-                jd.LimitEnabled = true;
-                World.AddJoint(jd);
-
-                body.ApplyAngularImpulse(100.0f);
-            }
-
-            //Bridge
-            {
-                const int N = 20;
-                PolygonShape shape = new PolygonShape(1);
-                shape.SetAsBox(1.0f, 0.125f);
-
-                Body prevBody = ground;
-                for (int i = 0; i < N; ++i)
-                {
-                    Body body = new Body(World);
-                    body.BodyType = BodyType.Dynamic;
-                    body.Position = new Vector2(161.0f + 2.0f * i, -0.125f);
-                    Fixture fix = body.CreateFixture(shape);
-                    fix.Friction = 0.6f;
-
-                    Vector2 anchor = new Vector2(-1, 0);
-                    JointFactory.CreateRevoluteJoint(World, prevBody, body, anchor);
-
-                    prevBody = body;
-                }
-
-                Vector2 anchor2 = new Vector2(1.0f, 0);
-                JointFactory.CreateRevoluteJoint(World, ground, prevBody, anchor2);
-            }
-
-            // Boxes
-            {
-                PolygonShape box = new PolygonShape(0.5f);
-                box.SetAsBox(0.5f, 0.5f);
-
-                Body body = new Body(World);
-                body.BodyType = BodyType.Dynamic;
-                body.Position = new Vector2(230.0f, 0.5f);
-                body.CreateFixture(box);
-
-                body = new Body(World);
-                body.BodyType = BodyType.Dynamic;
-                body.Position = new Vector2(230.0f, 1.5f);
-                body.CreateFixture(box);
-
-                body = new Body(World);
-                body.BodyType = BodyType.Dynamic;
-                body.Position = new Vector2(230.0f, 2.5f);
-                body.CreateFixture(box);
-
-                body = new Body(World);
-                body.BodyType = BodyType.Dynamic;
-                body.Position = new Vector2(230.0f, 3.5f);
-                body.CreateFixture(box);
-
-                body = new Body(World);
-                body.BodyType = BodyType.Dynamic;
-                body.Position = new Vector2(230.0f, 4.5f);
-                body.CreateFixture(box);
-            }
-
-            // Car
-            {
-                Vertices vertices = new Vertices(8);
-                vertices.Add(new Vector2(-1.5f, -0.5f));
-                vertices.Add(new Vector2(1.5f, -0.5f));
-                vertices.Add(new Vector2(1.5f, 0.0f));
-                vertices.Add(new Vector2(0.0f, 0.9f));
-                vertices.Add(new Vector2(-1.15f, 0.9f));
-                vertices.Add(new Vector2(-1.5f, 0.2f));
-
-                PolygonShape chassis = new PolygonShape(vertices, 1);
-
-                CircleShape circle = new CircleShape(0.4f, 1);
-
-                _car = new Body(World);
-                _car.BodyType = BodyType.Dynamic;
-                _car.Position = new Vector2(0.0f, 1.0f);
-                _car.CreateFixture(chassis);
-
-                _wheel1 = new Body(World);
-                _wheel1.BodyType = BodyType.Dynamic;
-                _wheel1.Position = new Vector2(-1.0f, 0.35f);
-                _wheel1.CreateFixture(circle);
-                _wheel1.Friction = 0.9f;
-
-                _wheel2 = new Body(World);
-                _wheel2.BodyType = BodyType.Dynamic;
-                _wheel2.Position = new Vector2(1.0f, 0.4f);
-                _wheel2.CreateFixture(circle);
-                _wheel2.Friction = 0.9f;
-
-                Vector2 axis = new Vector2(0.0f, 1.0f);
-                _spring1 = new WheelJoint(_car, _wheel1, _wheel1.Position, axis);
-                _spring1.MotorSpeed = 0.0f;
-                _spring1.MaxMotorTorque = 20.0f;
-                _spring1.MotorEnabled = true;
-                _spring1.SpringFrequencyHz = _hz;
-                _spring1.SpringDampingRatio = _zeta;
-                World.AddJoint(_spring1);
-
-                _spring2 = new WheelJoint(_car, _wheel2, _wheel2.Position, axis);
-                _spring2.MotorSpeed = 0.0f;
-                _spring2.MaxMotorTorque = 10.0f;
-                _spring2.MotorEnabled = false;
-                _spring2.SpringFrequencyHz = _hz;
-                _spring2.SpringDampingRatio = _zeta;
-                World.AddJoint(_spring2);
             }
         }
 
+        private bool doUpdate = false;
         public override void Keyboard(KeyboardManager keyboardManager)
         {
-            if (keyboardManager.IsNewKeyPress(Keys.A))
+            if (keyboardManager.IsKeyDown(Keys.W))
             {
-                _spring1.MotorSpeed = _speed;
+                engineSpeed = -DEFAULT_HORSEPOWER;
             }
-            else if (keyboardManager.IsNewKeyPress(Keys.S))
+            if (keyboardManager.IsKeyDown(Keys.S))
             {
-                _spring1.MotorSpeed = 0.0f;
+                engineSpeed = DEFAULT_HORSEPOWER;
             }
-            else if (keyboardManager.IsNewKeyPress(Keys.D))
+            if (keyboardManager.IsKeyDown(Keys.D))
             {
-                _spring1.MotorSpeed = -_speed;
+                steeringAngle = DEFAULT_MAX_STEER_ANGLE;
             }
-            else if (keyboardManager.IsNewKeyPress(Keys.Q))
+            if (keyboardManager.IsKeyDown(Keys.A))
             {
-                _hz = Math.Max(0.0f, _hz - 1.0f);
-                _spring1.SpringFrequencyHz = _hz;
-                _spring2.SpringFrequencyHz = _hz;
+
+                steeringAngle = -DEFAULT_MAX_STEER_ANGLE;
             }
-            else if (keyboardManager.IsNewKeyPress(Keys.E))
+            if (keyboardManager.IsNewKeyPress(Keys.Q))
             {
-                _hz += 1.0f;
-                _spring1.SpringFrequencyHz = _hz;
-                _spring2.SpringFrequencyHz = _hz;
+            }
+            if (keyboardManager.IsNewKeyPress(Keys.E))
+            {
+            }
+            if (keyboardManager.IsNewKeyPress(Keys.N))
+            {
+                doUpdate = true;
             }
 
             base.Keyboard(keyboardManager);
         }
 
+        Vector2 newPosition;
+
+        public override void Mouse(MouseState state, MouseState oldState)
+        {
+            Vector2 position = GameInstance.ConvertScreenToWorld(state.X, state.Y);
+
+            if (state.LeftButton == ButtonState.Pressed && oldState.LeftButton == ButtonState.Released)
+            {
+                newPosition = position;
+            }
+
+            if (state.LeftButton == ButtonState.Released && oldState.LeftButton == ButtonState.Pressed)
+            {
+            }
+        }
+
         public override void Update(GameSettings settings, GameTime gameTime)
         {
-            DebugView.DrawString(50, TextLine, "Keys: left = a, brake = s, right = d, hz down = q, hz up = e");
-            TextLine += 15;
-            DebugView.DrawString(50, TextLine, "frequency = {0} hz, damping ratio = {1}", _hz, _zeta);
-            TextLine += 15;
-            DebugView.DrawString(50, TextLine, "actual speed = {0} rad/sec", _spring1.JointSpeed);
-            TextLine += 15;
+            if (!doUpdate)
+            {
+                return;
+            }
 
-            GameInstance.ViewCenter = _car.Position;
+            if (newPosition != Vector2.Zero)
+            {
+                SetState(newPosition);
+                newPosition = Vector2.Zero;
+            }
+            //GameInstance.ViewCenter = _car.Position;
+            Transform t;
+            killOrthogonalVelocity();
+            /* Driving */
+            LeftRearWheel.GetTransform(out t);
+            var ldirection = t.q.GetYAxis();
+            ldirection *= engineSpeed / 2;
+            RightRearWheel.GetTransform(out t);
+            var rdirection = t.q.GetYAxis();
+            rdirection *= engineSpeed / 2;
+            LeftRearWheel.ApplyForce(ldirection);
+            RightRearWheel.ApplyForce(rdirection);
+            LeftWheel.GetTransform(out t);
+            ldirection = t.q.GetYAxis();
+            ldirection *= engineSpeed / 2;
+            RightWheel.GetTransform(out t);
+            rdirection = t.q.GetYAxis();
+            rdirection *= engineSpeed / 2;
+            LeftWheel.ApplyForce(ldirection); // front wheel drive?
+            RightWheel.ApplyForce(rdirection);
 
+            //Steering
+            var mspeed = steeringAngle - leftJoint.JointAngle;
+            leftJoint.MotorSpeed = (mspeed * DEFAULT_STEER_SPEED);
+            mspeed = steeringAngle - rightJoint.JointAngle;
+            rightJoint.MotorSpeed = (mspeed * DEFAULT_STEER_SPEED);
+
+            //_car.Rotation += steeringAngle;
+            resetInput();
+            doUpdate = false;
             base.Update(settings, gameTime);
+        }
+
+        private void resetInput()
+        {
+            engineSpeed = 0;
+            steeringAngle = 0;
         }
 
         internal static Test Create()
