@@ -110,7 +110,7 @@ namespace FarseerPhysics.Dynamics.Joints
         /// <summary>
         /// The body2 angle minus body1 angle in the reference state (radians).
         /// </summary>
-        public float ReferenceAngle { get; private set; }
+        public float ReferenceAngle { get; set; }
 
         public override Vector2 GetReactionForce(float inv_dt)
         {
