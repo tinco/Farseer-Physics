@@ -141,12 +141,11 @@ namespace FarseerPhysics.TestBed.Tests
         public void SetState(Vector2 position)
         {
             var rotation = (float)Math.PI / 2;
-            //Debug.WriteLine("Client Position: " + state.Position + " Rotation: " + state.WheelAngle);
-            //Debug.WriteLine("   Own Position: " + PhysicsBody.Position + " Rotation: " + LeftWheel.Rotation);
+
             var dP = _car.Position - position;
             var dA = _car.Rotation - rotation;
             _car.SetTransform(ref position, rotation);
-            //*/
+
             LeftWheel.Position = leftJoint.WorldAnchorB;
             LeftWheel.Rotation -= dA;
             RightWheel.Position = rightJoint.WorldAnchorB;
@@ -155,20 +154,7 @@ namespace FarseerPhysics.TestBed.Tests
             RightRearWheel.Rotation -= dA;
             LeftRearWheel.Position = LeftRearJoint.WorldAnchorA; //*/
             LeftRearWheel.Rotation -= dA;
-            /*LeftWheel.Rotation = LeftWheel.Rotation + dA;
-            leftJoint.LocalAnchorA = LeftWheel.GetLocalPoint(LeftWheel.Position);
-            leftJoint.LocalAnchorB = _car.GetLocalPoint(LeftWheel.Position);
-            leftJoint.ReferenceAngle = _car.Rotation - LeftWheel.Rotation;
-            //RightWheel.Position = rotate(RightWheel.Position, position, _car.Rotation);
-            //LeftRearWheel.Position = rotate(LeftRearWheel.Position, state.Position, PhysicsBody.Rotation);
-            //RightRearWheel.Position = rotate(RightRearWheel.Position, state.Position, PhysicsBody.Rotation);
-            /*
-            _car.AngularVelocity = carState.AngularVelocity;
-            _car.LinearVelocity = carState.LinearVelocity;
-            LeftWheel.Rotation = carState.WheelAngle;
-            RightWheel.Rotation = carState.WheelAngle;
-            */
-            // EngineSpeed
+            
         }
 
         private Vector2 rotate(Vector2 s, Vector2 o, float angle)
