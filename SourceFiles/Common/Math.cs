@@ -1,6 +1,6 @@
 ﻿/*
-* Farseer Physics Engine based on Box2D.XNA port:
-* Copyright (c) 2011 Ian Qvist
+* Farseer Physics Engine:
+* Copyright (c) 2012 Ian Qvist
 * 
 * Original source Box2D:
 * Copyright (c) 2006-2011 Erin Catto http://www.box2d.org 
@@ -29,9 +29,14 @@ namespace FarseerPhysics.Common
 {
     public static class MathUtils
     {
-        public static float Cross(Vector2 a, Vector2 b)
+        public static float Cross(ref Vector2 a, ref Vector2 b)
         {
             return a.X * b.Y - a.Y * b.X;
+        }
+
+        public static float Cross(Vector2 a, Vector2 b)
+        {
+            return Cross(ref a, ref b);
         }
 
         /// Perform the cross product on two vectors.
@@ -330,13 +335,9 @@ namespace FarseerPhysics.Common
         /// <param name="a">First vertex</param>
         /// <param name="b">Second vertex</param>
         /// <param name="c">Third vertex</param>
+        /// <param name="tolerance">The tolerance</param>
         /// <returns></returns>
-        public static bool Collinear(ref Vector2 a, ref Vector2 b, ref Vector2 c)
-        {
-            return Collinear(ref a, ref b, ref c, 0);
-        }
-
-        public static bool Collinear(ref Vector2 a, ref Vector2 b, ref Vector2 c, float tolerance)
+        public static bool IsCollinear(ref Vector2 a, ref Vector2 b, ref Vector2 c, float tolerance = 0)
         {
             return FloatInRange(Area(ref a, ref b, ref c), -tolerance, tolerance);
         }
@@ -557,9 +558,7 @@ namespace FarseerPhysics.Common
                 det = 1.0f / det;
             }
 
-            return new Vector3(det * Vector3.Dot(b, Vector3.Cross(ey, ez)),
-                               det * Vector3.Dot(ex, Vector3.Cross(b, ez)),
-                               det * Vector3.Dot(ex, Vector3.Cross(ey, b)));
+            return new Vector3(det * Vector3.Dot(b, Vector3.Cross(ey, ez)), det * Vector3.Dot(ex, Vector3.Cross(b, ez)), det * Vector3.Dot(ex, Vector3.Cross(ey, b)));
         }
 
         /// <summary>
@@ -626,52 +625,77 @@ namespace FarseerPhysics.Common
         }
     }
 
+    /// <summary>
     /// Rotation
+    /// </summary>
     public struct Rot
     {
+        /// Sine and cosine
+        public float s, c;
+
+        /// <summary>
         /// Initialize from an angle in radians
+        /// </summary>
+        /// <param name="angle">Angle in radians</param>
         public Rot(float angle)
         {
-            /// TODO_ERIN optimize
+            // TODO_ERIN optimize
             s = (float)Math.Sin(angle);
             c = (float)Math.Cos(angle);
         }
 
+        /// <summary>
         /// Set using an angle in radians.
+        /// </summary>
+        /// <param name="angle"></param>
         public void Set(float angle)
         {
-            /// TODO_ERIN optimize
-            s = (float)Math.Sin(angle);
-            c = (float)Math.Cos(angle);
+            //FPE: Optimization
+            if (angle == 0)
+            {
+                s = 0;
+                c = 1;
+            }
+            else
+            {
+                // TODO_ERIN optimize
+                s = (float)Math.Sin(angle);
+                c = (float)Math.Cos(angle);
+            }
         }
 
+        /// <summary>
         /// Set to the identity rotation
+        /// </summary>
         public void SetIdentity()
         {
             s = 0.0f;
             c = 1.0f;
         }
 
+        /// <summary>
         /// Get the angle in radians
+        /// </summary>
         public float GetAngle()
         {
             return (float)Math.Atan2(s, c);
         }
 
+        /// <summary>
         /// Get the x-axis
+        /// </summary>
         public Vector2 GetXAxis()
         {
             return new Vector2(c, s);
         }
 
-        /// Get the u-axis
+        /// <summary>
+        /// Get the y-axis
+        /// </summary>
         public Vector2 GetYAxis()
         {
             return new Vector2(-s, c);
         }
-
-        /// Sine and cosine
-        public float s, c;
     }
 
     /// <summary>
@@ -773,9 +797,8 @@ namespace FarseerPhysics.Common
         {
             Debug.Assert(Alpha0 < 1.0f);
             float beta = (alpha - Alpha0) / (1.0f - Alpha0);
-            C0.X = (1.0f - beta) * C0.X + beta * C.X;
-            C0.Y = (1.0f - beta) * C0.Y + beta * C.Y;
-            A0 = (1.0f - beta) * A0 + beta * A;
+            C0 += beta * (C - C0);
+            A0 += beta * (A - A0);
             Alpha0 = alpha;
         }
 

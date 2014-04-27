@@ -1,4 +1,4 @@
-﻿#if (!XNA)
+﻿#if !XNA && !WINDOWS_PHONE && !XBOX && !ANDROID
 
 #region License
 
@@ -60,15 +60,15 @@ namespace Microsoft.Xna.Framework
 
     public class Curve
     {
-        #region Private Fields
+#region Private Fields
 
         private CurveKeyCollection keys;
         private CurveLoopType postLoop;
         private CurveLoopType preLoop;
 
-        #endregion Private Fields
+#endregion Private Fields
 
-        #region Public Properties
+#region Public Properties
 
         public bool IsConstant
         {
@@ -92,18 +92,18 @@ namespace Microsoft.Xna.Framework
             set { preLoop = value; }
         }
 
-        #endregion Public Properties
+#endregion Public Properties
 
-        #region Public Constructors
+#region Public Constructors
 
         public Curve()
         {
             keys = new CurveKeyCollection();
         }
 
-        #endregion Public Constructors
+#endregion Public Constructors
 
-        #region Public Methods
+#region Public Methods
 
         public void ComputeTangent(int keyIndex, CurveTangent tangentInType, CurveTangent tangentOutType)
         {
@@ -220,9 +220,9 @@ namespace Microsoft.Xna.Framework
             return GetCurvePosition(position);
         }
 
-        #endregion Public Methods
+#endregion Public Methods
 
-        #region Private Methods
+#region Private Methods
 
         private int GetNumberOfCycle(float position)
         {
@@ -266,7 +266,7 @@ namespace Microsoft.Xna.Framework
             return 0f;
         }
 
-        #endregion
+#endregion
     }
 }
 

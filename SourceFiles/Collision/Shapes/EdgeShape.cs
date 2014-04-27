@@ -1,6 +1,6 @@
 /*
-* Farseer Physics Engine based on Box2D.XNA port:
-* Copyright (c) 2011 Ian Qvist
+* Farseer Physics Engine:
+* Copyright (c) 2012 Ian Qvist
 * 
 * Original source Box2D:
 * Copyright (c) 2006-2011 Erin Catto http://www.box2d.org 
@@ -26,24 +26,12 @@ using Microsoft.Xna.Framework;
 namespace FarseerPhysics.Collision.Shapes
 {
     /// <summary>
-    /// A line segment (edge) Shape. These can be connected in chains or loops
-    /// to other edge Shapes. The connectivity information is used to ensure
-    /// correct contact normals.
+    /// A line segment (edge) shape. These can be connected in chains or loops
+    /// to other edge shapes.
+    /// The connectivity information is used to ensure correct contact normals.
     /// </summary>
     public class EdgeShape : Shape
     {
-        public bool HasVertex0, HasVertex3;
-
-        /// <summary>
-        /// Optional adjacent vertices. These are used for smooth collision.
-        /// </summary>
-        public Vector2 Vertex0;
-
-        /// <summary>
-        /// Optional adjacent vertices. These are used for smooth collision.
-        /// </summary>
-        public Vector2 Vertex3;
-
         /// <summary>
         /// Edge start vertex
         /// </summary>
@@ -61,6 +49,11 @@ namespace FarseerPhysics.Collision.Shapes
             _radius = Settings.PolygonRadius;
         }
 
+        /// <summary>
+        /// Create a new EdgeShape with the specified start and end.
+        /// </summary>
+        /// <param name="start">The start of the edge.</param>
+        /// <param name="end">The end of the edge.</param>
         public EdgeShape(Vector2 start, Vector2 end)
             : base(0)
         {
@@ -73,6 +66,26 @@ namespace FarseerPhysics.Collision.Shapes
         {
             get { return 1; }
         }
+
+        /// <summary>
+        /// Is true if the edge is connected to an adjacent vertex before vertex 1.
+        /// </summary>
+        public bool HasVertex0 { get; set; }
+
+        /// <summary>
+        /// Is true if the edge is connected to an adjacent vertex after vertex2.
+        /// </summary>
+        public bool HasVertex3 { get; set; }
+
+        /// <summary>
+        /// Optional adjacent vertices. These are used for smooth collision.
+        /// </summary>
+        public Vector2 Vertex0 { get; set; }
+
+        /// <summary>
+        /// Optional adjacent vertices. These are used for smooth collision.
+        /// </summary>
+        public Vector2 Vertex3 { get; set; }
 
         /// <summary>
         /// These are the edge vertices
@@ -112,46 +125,15 @@ namespace FarseerPhysics.Collision.Shapes
             HasVertex0 = false;
             HasVertex3 = false;
 
-            //Added here to speed things up
             ComputeProperties();
         }
 
-        public override Shape Clone()
-        {
-            EdgeShape edge = new EdgeShape();
-            edge._radius = _radius;
-            edge._density = _density;
-            edge.HasVertex0 = HasVertex0;
-            edge.HasVertex3 = HasVertex3;
-            edge.Vertex0 = Vertex0;
-            edge._vertex1 = _vertex1;
-            edge._vertex2 = _vertex2;
-            edge.Vertex3 = Vertex3;
-            edge.MassData = MassData;
-            return edge;
-        }
-
-        /// <summary>
-        /// Test a point for containment in this shape. This only works for convex shapes.
-        /// </summary>
-        /// <param name="transform">The shape world transform.</param>
-        /// <param name="point">a point in world coordinates.</param>
-        /// <returns>True if the point is inside the shape</returns>
         public override bool TestPoint(ref Transform transform, ref Vector2 point)
         {
             return false;
         }
 
-        /// <summary>
-        /// Cast a ray against a child shape.
-        /// </summary>
-        /// <param name="output">The ray-cast results.</param>
-        /// <param name="input">The ray-cast input parameters.</param>
-        /// <param name="transform">The transform to be applied to the shape.</param>
-        /// <param name="childIndex">The child shape index.</param>
-        /// <returns>True if the ray-cast hits the shape</returns>
-        public override bool RayCast(out RayCastOutput output, ref RayCastInput input,
-                                     ref Transform transform, int childIndex)
+        public override bool RayCast(out RayCastOutput output, ref RayCastInput input, ref Transform transform, int childIndex)
         {
             // p = p1 + t * d
             // v = v1 + s * e
@@ -168,7 +150,7 @@ namespace FarseerPhysics.Collision.Shapes
             Vector2 v1 = _vertex1;
             Vector2 v2 = _vertex2;
             Vector2 e = v2 - v1;
-            Vector2 normal = new Vector2(e.Y, -e.X);
+            Vector2 normal = new Vector2(e.Y, -e.X); //TODO: Could possibly cache the normal.
             normal.Normalize();
 
             // q = p1 + t * d
@@ -217,12 +199,6 @@ namespace FarseerPhysics.Collision.Shapes
             return true;
         }
 
-        /// <summary>
-        /// Given a transform, compute the associated axis aligned bounding box for a child shape.
-        /// </summary>
-        /// <param name="aabb">The aabb results.</param>
-        /// <param name="transform">The world transform of the shape.</param>
-        /// <param name="childIndex">The child shape index.</param>
         public override void ComputeAABB(out AABB aabb, ref Transform transform, int childIndex)
         {
             Vector2 v1 = MathUtils.Mul(ref transform, _vertex1);
@@ -236,16 +212,12 @@ namespace FarseerPhysics.Collision.Shapes
             aabb.UpperBound = upper + r;
         }
 
-        /// <summary>
-        /// Compute the mass properties of this shape using its dimensions and density.
-        /// The inertia tensor is computed about the local origin, not the centroid.
-        /// </summary>
         protected override void ComputeProperties()
         {
             MassData.Centroid = 0.5f * (_vertex1 + _vertex2);
         }
 
-        public override float ComputeSubmergedArea(Vector2 normal, float offset, Transform xf, out Vector2 sc)
+        public override float ComputeSubmergedArea(ref Vector2 normal, float offset, ref Transform xf, out Vector2 sc)
         {
             sc = Vector2.Zero;
             return 0;
@@ -259,6 +231,22 @@ namespace FarseerPhysics.Collision.Shapes
                     Vertex1 == shape.Vertex1 &&
                     Vertex2 == shape.Vertex2 &&
                     Vertex3 == shape.Vertex3);
+        }
+
+        public override Shape Clone()
+        {
+            EdgeShape clone = new EdgeShape();
+            clone.ShapeType = ShapeType;
+            clone._radius = _radius;
+            clone._density = _density;
+            clone.HasVertex0 = HasVertex0;
+            clone.HasVertex3 = HasVertex3;
+            clone.Vertex0 = Vertex0;
+            clone._vertex1 = _vertex1;
+            clone._vertex2 = _vertex2;
+            clone.Vertex3 = Vertex3;
+            clone.MassData = MassData;
+            return clone;
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿/*
-* Farseer Physics Engine based on Box2D.XNA port:
-* Copyright (c) 2011 Ian Qvist
+* Farseer Physics Engine:
+* Copyright (c) 2012 Ian Qvist
 * 
 * Original source Box2D:
 * Copyright (c) 2006-2011 Erin Catto http://www.box2d.org 
@@ -34,13 +34,27 @@ namespace FarseerPhysics
         // Common
 
         /// <summary>
+        /// If true, all collision callbacks have to return the same value, and agree
+        /// if there was a collision or not. Swtich this to false to revert to the 
+        /// collision agreement used in FPE 3.3.x
+        /// </summary>
+        public const bool AllCollisionCallbacksAgree = true;
+
+        /// <summary>
         /// Enabling diagnistics causes the engine to gather timing information.
         /// You can see how much time it took to solve the contacts, solve CCD
         /// and update the controllers.
         /// NOTE: If you are using a debug view that shows performance counters,
         /// you might want to enable this.
         /// </summary>
-        public static bool EnableDiagnostics = true;
+        public const bool EnableDiagnostics = true;
+
+        /// <summary>
+        /// Set this to true to skip sanity checks in the engine. This will speed up the
+        /// tools by removing the overhead of the checks, but you will need to handle checks
+        /// yourself where it is needed.
+        /// </summary>
+        public const bool SkipSanityChecks = false;
 
         /// <summary>
         /// The number of velocity iterations used in the solver.
@@ -58,9 +72,17 @@ namespace FarseerPhysics
         public static bool ContinuousPhysics = true;
 
         /// <summary>
+        /// If true, it will run a GiftWrap convex hull on all polygon inputs.
+        /// This makes for a more stable engine when given random input,
+        /// but if speed of the creation of polygons are more important,
+        /// you might want to set this to false.
+        /// </summary>
+        public static bool UseConvexHullPolygons = true;
+
+        /// <summary>
         /// The number of velocity iterations in the TOI solver
         /// </summary>
-        public static int TOIVelocityIterations = 8;
+        public static int TOIVelocityIterations = VelocityIterations;
 
         /// <summary>
         /// The number of position iterations in the TOI solver
@@ -70,12 +92,12 @@ namespace FarseerPhysics
         /// <summary>
         /// Maximum number of sub-steps per contact in continuous physics simulation.
         /// </summary>
-		public const int MaxSubSteps = 8;
+        public const int MaxSubSteps = 8;
 
         /// <summary>
         /// Enable/Disable warmstarting
         /// </summary>
-        public static bool EnableWarmstarting = true;
+        public const bool EnableWarmstarting = true;
 
         /// <summary>
         /// Enable/Disable sleeping
@@ -91,41 +113,33 @@ namespace FarseerPhysics
         /// Farseer Physics Engine has a different way of filtering fixtures than Box2d.
         /// We have both FPE and Box2D filtering in the engine. If you are upgrading
         /// from earlier versions of FPE, set this to true and DefaultFixtureCollisionCategories
-		/// to Category.All.
+        /// to Category.All.
         /// </summary>
         public static bool UseFPECollisionCategories;
 
-		/// <summary>
-		/// This is used by the Fixture constructor as the default value 
-		/// for Fixture.CollisionCategories member. Note that you may need to change this depending
-		/// on the setting of UseFPECollisionCategories, above.
-		/// </summary>
-		public static Category DefaultFixtureCollisionCategories = Category.Cat1;
-
-		/// <summary>
-		/// This is used by the Fixture constructor as the default value 
-		/// for Fixture.CollidesWith member.
-		/// </summary>
-		public static Category DefaultFixtureCollidesWith = Category.All;
-
-
-		/// <summary>
-		/// This is used by the Fixture constructor as the default value 
-		/// for Fixture.IgnoreCCDWith member.
-		/// </summary>
-		public static Category DefaultFixtureIgnoreCCDWith = Category.None;
+        /// <summary>
+        /// This is used by the Fixture constructor as the default value 
+        /// for Fixture.CollisionCategories member. Note that you may need to change this depending
+        /// on the setting of UseFPECollisionCategories, above.
+        /// </summary>
+        public static Category DefaultFixtureCollisionCategories = Category.Cat1;
 
         /// <summary>
-        /// Conserve memory makes sure that objects are used by reference instead of cloned.
-        /// When you give a vertices collection to a PolygonShape, it will by default copy the vertices
-        /// instead of using the original reference. This is to ensure that objects modified outside the engine
-        /// does not affect the engine itself, however, this uses extra memory. This behavior
-        /// can be turned off by setting ConserveMemory to true.
+        /// This is used by the Fixture constructor as the default value 
+        /// for Fixture.CollidesWith member.
         /// </summary>
-        public const bool ConserveMemory = false;
+        public static Category DefaultFixtureCollidesWith = Category.All;
+
+
+        /// <summary>
+        /// This is used by the Fixture constructor as the default value 
+        /// for Fixture.IgnoreCCDWith member.
+        /// </summary>
+        public static Category DefaultFixtureIgnoreCCDWith = Category.None;
 
         /// <summary>
         /// The maximum number of contact points between two convex shapes.
+        /// DO NOT CHANGE THIS VALUE!
         /// </summary>
         public const int MaxManifoldPoints = 2;
 
@@ -193,10 +207,8 @@ namespace FarseerPhysics
         /// to overshoot.
         /// </summary>
         public const float Baumgarte = 0.2f;
-        public const float TOIBaumgarte = 0.75f;
 
         // Sleep
-
         /// <summary>
         /// The time that a body must be still before it will go to sleep.
         /// </summary>
@@ -229,6 +241,26 @@ namespace FarseerPhysics
         public const float MaxRotationSquared = (MaxRotation * MaxRotation);
 
         /// <summary>
+        /// Defines the maximum number of iterations made by the GJK algorithm.
+        /// </summary>
+        public const int MaxGJKIterations = 20;
+
+        /// <summary>
+        /// This is only for debugging the solver
+        /// </summary>
+        public const bool EnableSubStepping = false;
+
+        /// <summary>
+        /// By default, forces are cleared automatically after each call to Step.
+        /// The default behavior is modified with this setting.
+        /// The purpose of this setting is to support sub-stepping. Sub-stepping is often used to maintain
+        /// a fixed sized time step under a variable frame-rate.
+        /// When you perform sub-stepping you should disable auto clearing of forces and instead call
+        /// ClearForces after all sub-steps are complete in one pass of your game loop.
+        /// </summary>
+        public const bool AutoClearForces = true;
+
+        /// <summary>
         /// Friction mixing law. Feel free to customize this.
         /// </summary>
         /// <param name="friction1">The friction1.</param>
@@ -236,7 +268,7 @@ namespace FarseerPhysics
         /// <returns></returns>
         public static float MixFriction(float friction1, float friction2)
         {
-            return (float) Math.Sqrt(friction1 * friction2);
+            return (float)Math.Sqrt(friction1 * friction2);
         }
 
         /// <summary>

@@ -37,9 +37,9 @@
 
 using System.Collections.Generic;
 
-namespace Poly2Tri.Triangulation.Polygon
+namespace FarseerPhysics.Common.Decomposition.CDT.Polygon
 {
-    public class PolygonSet
+    internal class PolygonSet
     {
         protected List<Polygon> _polygons = new List<Polygon>();
 

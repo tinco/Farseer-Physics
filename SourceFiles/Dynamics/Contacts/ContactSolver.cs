@@ -1,6 +1,6 @@
 /*
-* Farseer Physics Engine based on Box2D.XNA port:
-* Copyright (c) 2011 Ian Qvist
+* Farseer Physics Engine:
+* Copyright (c) 2012 Ian Qvist
 * 
 * Original source Box2D:
 * Copyright (c) 2006-2011 Erin Catto http://www.box2d.org 
@@ -90,7 +90,7 @@ namespace FarseerPhysics.Dynamics.Contacts
         public Contact[] _contacts;
         public int _count;
 
-        public void Reset(TimeStep step, int count, Contact[] contacts, Position[] positions, Velocity[] velocities)
+        public void Reset(TimeStep step, int count, Contact[] contacts, Position[] positions, Velocity[] velocities, bool warmstarting = Settings.EnableWarmstarting)
         {
             _step = step;
             _count = count;
@@ -139,10 +139,10 @@ namespace FarseerPhysics.Dynamics.Contacts
                 vc.tangentSpeed = contact.TangentSpeed;
                 vc.indexA = bodyA.IslandIndex;
                 vc.indexB = bodyB.IslandIndex;
-                vc.invMassA = bodyA.InvMass;
-                vc.invMassB = bodyB.InvMass;
-                vc.invIA = bodyA.InvI;
-                vc.invIB = bodyB.InvI;
+                vc.invMassA = bodyA._invMass;
+                vc.invMassB = bodyB._invMass;
+                vc.invIA = bodyA._invI;
+                vc.invIB = bodyB._invI;
                 vc.contactIndex = i;
                 vc.pointCount = pointCount;
                 vc.K.SetZero();
@@ -151,12 +151,12 @@ namespace FarseerPhysics.Dynamics.Contacts
                 ContactPositionConstraint pc = _positionConstraints[i];
                 pc.indexA = bodyA.IslandIndex;
                 pc.indexB = bodyB.IslandIndex;
-                pc.invMassA = bodyA.InvMass;
-                pc.invMassB = bodyB.InvMass;
-                pc.localCenterA = bodyA.Sweep.LocalCenter;
-                pc.localCenterB = bodyB.Sweep.LocalCenter;
-                pc.invIA = bodyA.InvI;
-                pc.invIB = bodyB.InvI;
+                pc.invMassA = bodyA._invMass;
+                pc.invMassB = bodyB._invMass;
+                pc.localCenterA = bodyA._sweep.LocalCenter;
+                pc.localCenterB = bodyB._sweep.LocalCenter;
+                pc.invIA = bodyA._invI;
+                pc.invIB = bodyB._invI;
                 pc.localNormal = manifold.LocalNormal;
                 pc.localPoint = manifold.LocalPoint;
                 pc.pointCount = pointCount;
@@ -774,8 +774,8 @@ namespace FarseerPhysics.Dynamics.Contacts
                     iA = pc.invIA;
                 }
 
-                float mB = pc.invMassB;
-                float iB = pc.invIB;
+                float mB = 0.0f;
+                float iB = 0.0f;
                 if (indexB == toiIndexA || indexB == toiIndexB)
                 {
                     mB = pc.invMassB;
@@ -927,7 +927,6 @@ namespace FarseerPhysics.Dynamics.Contacts
             public static void Initialize(ContactPositionConstraint pc, Transform xfA, Transform xfB, int index, out Vector2 normal, out Vector2 point, out float separation)
             {
                 Debug.Assert(pc.pointCount > 0);
-
 
                 switch (pc.type)
                 {

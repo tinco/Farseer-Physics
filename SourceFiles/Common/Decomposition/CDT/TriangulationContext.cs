@@ -31,11 +31,11 @@
 
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using Poly2Tri.Triangulation.Delaunay;
+using FarseerPhysics.Common.Decomposition.CDT.Delaunay;
 
-namespace Poly2Tri.Triangulation
+namespace FarseerPhysics.Common.Decomposition.CDT
 {
-    public abstract class TriangulationContext
+    internal abstract class TriangulationContext
     {
         public readonly List<TriangulationPoint> Points = new List<TriangulationPoint>(200);
         public readonly List<DelaunayTriangle> Triangles = new List<DelaunayTriangle>();

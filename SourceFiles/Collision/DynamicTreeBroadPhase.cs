@@ -1,6 +1,6 @@
 ﻿/*
-* Farseer Physics Engine based on Box2D.XNA port:
-* Copyright (c) 2011 Ian Qvist
+* Farseer Physics Engine:
+* Copyright (c) 2012 Ian Qvist
 * 
 * Original source Box2D:
 * Copyright (c) 2006-2011 Erin Catto http://www.box2d.org 
@@ -94,8 +94,6 @@ namespace FarseerPhysics.Collision
             _moveBuffer = new int[_moveCapacity];
         }
 
-        #region IBroadPhase Members
-
         /// <summary>
         /// Get the number of proxies.
         /// </summary>
@@ -164,12 +162,16 @@ namespace FarseerPhysics.Collision
             {
                 if (_moveBuffer[i] == proxyId)
                 {
-                    _moveBuffer[i] = -1;
+                    _moveBuffer[i] = NullProxy;
                 }
             }
         }
 
-        // This is called from b2DynamicTree::Query when we are gathering pairs.
+        /// <summary>
+        /// This is called from DynamicTree.Query when we are gathering pairs.
+        /// </summary>
+        /// <param name="proxyId"></param>
+        /// <returns></returns>
         private bool QueryCallback(int proxyId)
         {
             // A proxy cannot form a pair with itself.
@@ -193,7 +195,6 @@ namespace FarseerPhysics.Collision
 
             return true;
         }
-
 
         /// <summary>
         /// Get the AABB for a proxy.
@@ -314,11 +315,33 @@ namespace FarseerPhysics.Collision
             _tree.RayCast(callback, ref input);
         }
 
-        #endregion
+        public void ShiftOrigin(Vector2 newOrigin)
+        {
+            _tree.ShiftOrigin(newOrigin);
+        }
 
+        /// <summary>
+        /// Get the tree quality based on the area of the tree.
+        /// </summary>
+        public float TreeQuality
+        {
+            get { return _tree.AreaRatio; }
+        }
+
+        /// <summary>
+        /// Gets the balance of the tree.
+        /// </summary>
+        public int TreeBalance
+        {
+            get { return _tree.MaxBalance; }
+        }
+
+        /// <summary>
+        /// Gets the height of the tree.
+        /// </summary>
         public int TreeHeight
         {
-            get { return _tree.GetHeight(); }
+            get { return _tree.Height; }
         }
     }
 }

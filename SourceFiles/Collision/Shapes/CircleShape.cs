@@ -1,6 +1,6 @@
 ﻿/*
 * Farseer Physics Engine:
-* Copyright (c) 2011 Ian Qvist
+* Copyright (c) 2012 Ian Qvist
 * 
 * Original source Box2D:
 * Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
@@ -21,22 +21,33 @@
 */
 
 using System;
+using System.Diagnostics;
 using FarseerPhysics.Common;
 using Microsoft.Xna.Framework;
 
 namespace FarseerPhysics.Collision.Shapes
 {
+    /// <summary>
+    /// A circle shape.
+    /// </summary>
     public class CircleShape : Shape
     {
         internal Vector2 _position;
 
+        /// <summary>
+        /// Create a new circle with the desired radius and density.
+        /// </summary>
+        /// <param name="radius">The radius of the circle.</param>
+        /// <param name="density">The density of the circle.</param>
         public CircleShape(float radius, float density)
             : base(density)
         {
+            Debug.Assert(radius >= 0);
+            Debug.Assert(density >= 0);
+
             ShapeType = ShapeType.Circle;
-            _radius = radius;
             _position = Vector2.Zero;
-            ComputeProperties();
+            Radius = radius; // The Radius property cache 2radius and calls ComputeProperties(). So no need to call ComputeProperties() here.
         }
 
         internal CircleShape()
@@ -52,50 +63,27 @@ namespace FarseerPhysics.Collision.Shapes
             get { return 1; }
         }
 
+        /// <summary>
+        /// Get or set the position of the circle
+        /// </summary>
         public Vector2 Position
         {
             get { return _position; }
             set
             {
                 _position = value;
-                ComputeProperties();
+                ComputeProperties(); //TODO: Optimize here
             }
         }
 
-        public override Shape Clone()
-        {
-            CircleShape shape = new CircleShape();
-            shape._radius = Radius;
-            shape._density = _density;
-            shape._position = _position;
-            shape.ShapeType = ShapeType;
-            shape.MassData = MassData;
-            return shape;
-        }
-
-        /// <summary>
-        /// Test a point for containment in this shape. This only works for convex shapes.
-        /// </summary>
-        /// <param name="transform">The shape world transform.</param>
-        /// <param name="point">a point in world coordinates.</param>
-        /// <returns>True if the point is inside the shape</returns>
         public override bool TestPoint(ref Transform transform, ref Vector2 point)
         {
             Vector2 center = transform.p + MathUtils.Mul(transform.q, Position);
             Vector2 d = point - center;
-            return Vector2.Dot(d, d) <= Radius * Radius;
+            return Vector2.Dot(d, d) <= _2radius;
         }
 
-        /// <summary>
-        /// Cast a ray against a child shape.
-        /// </summary>
-        /// <param name="output">The ray-cast results.</param>
-        /// <param name="input">The ray-cast input parameters.</param>
-        /// <param name="transform">The transform to be applied to the shape.</param>
-        /// <param name="childIndex">The child shape index.</param>
-        /// <returns>True if the ray-cast hits the shape</returns>
-        public override bool RayCast(out RayCastOutput output, ref RayCastInput input, ref Transform transform,
-                                     int childIndex)
+        public override bool RayCast(out RayCastOutput output, ref RayCastInput input, ref Transform transform, int childIndex)
         {
             // Collision Detection in Interactive 3D Environments by Gino van den Bergen
             // From Section 3.1.2
@@ -106,7 +94,7 @@ namespace FarseerPhysics.Collision.Shapes
 
             Vector2 position = transform.p + MathUtils.Mul(transform.q, Position);
             Vector2 s = input.Point1 - position;
-            float b = Vector2.Dot(s, s) - Radius * Radius;
+            float b = Vector2.Dot(s, s) - _2radius;
 
             // Solve quadratic equation.
             Vector2 r = input.Point2 - input.Point1;
@@ -138,12 +126,6 @@ namespace FarseerPhysics.Collision.Shapes
             return false;
         }
 
-        /// <summary>
-        /// Given a transform, compute the associated axis aligned bounding box for a child shape.
-        /// </summary>
-        /// <param name="aabb">The aabb results.</param>
-        /// <param name="transform">The world transform of the shape.</param>
-        /// <param name="childIndex">The child shape index.</param>
         public override void ComputeAABB(out AABB aabb, ref Transform transform, int childIndex)
         {
             Vector2 p = transform.p + MathUtils.Mul(transform.q, Position);
@@ -151,35 +133,18 @@ namespace FarseerPhysics.Collision.Shapes
             aabb.UpperBound = new Vector2(p.X + Radius, p.Y + Radius);
         }
 
-        /// <summary>
-        /// Compute the mass properties of this shape using its dimensions and density.
-        /// The inertia tensor is computed about the local origin, not the centroid.
-        /// </summary>
         protected override sealed void ComputeProperties()
         {
-            float area = Settings.Pi * Radius * Radius;
+            float area = Settings.Pi * _2radius;
             MassData.Area = area;
             MassData.Mass = Density * area;
             MassData.Centroid = Position;
 
             // inertia about the local origin
-            MassData.Inertia = MassData.Mass * (0.5f * Radius * Radius + Vector2.Dot(Position, Position));
+            MassData.Inertia = MassData.Mass * (0.5f * _2radius + Vector2.Dot(Position, Position));
         }
 
-        /// <summary>
-        /// Compare the circle to another circle
-        /// </summary>
-        /// <param name="shape">The other circle</param>
-        /// <returns>True if the two circles are the same size and have the same position</returns>
-        public bool CompareTo(CircleShape shape)
-        {
-            return (Radius == shape.Radius && Position == shape.Position);
-        }
-
-        /// <summary>
-        /// Method used by the BuoyancyController
-        /// </summary>
-        public override float ComputeSubmergedArea(Vector2 normal, float offset, Transform xf, out Vector2 sc)
+        public override float ComputeSubmergedArea(ref Vector2 normal, float offset, ref Transform xf, out Vector2 sc)
         {
             sc = Vector2.Zero;
 
@@ -194,19 +159,40 @@ namespace FarseerPhysics.Collision.Shapes
             {
                 //Completely wet
                 sc = p;
-                return Settings.Pi * Radius * Radius;
+                return Settings.Pi * _2radius;
             }
 
             //Magic
-            float r2 = Radius * Radius;
             float l2 = l * l;
-            float area = r2 * (float)((Math.Asin(l / Radius) + Settings.Pi / 2) + l * Math.Sqrt(r2 - l2));
-            float com = -2.0f / 3.0f * (float)Math.Pow(r2 - l2, 1.5f) / area;
+            float area = _2radius * (float)((Math.Asin(l / Radius) + Settings.Pi / 2) + l * Math.Sqrt(_2radius - l2));
+            float com = -2.0f / 3.0f * (float)Math.Pow(_2radius - l2, 1.5f) / area;
 
             sc.X = p.X + normal.X * com;
             sc.Y = p.Y + normal.Y * com;
 
             return area;
+        }
+
+        /// <summary>
+        /// Compare the circle to another circle
+        /// </summary>
+        /// <param name="shape">The other circle</param>
+        /// <returns>True if the two circles are the same size and have the same position</returns>
+        public bool CompareTo(CircleShape shape)
+        {
+            return (Radius == shape.Radius && Position == shape.Position);
+        }
+
+        public override Shape Clone()
+        {
+            CircleShape clone = new CircleShape();
+            clone.ShapeType = ShapeType;
+            clone._radius = Radius;
+            clone._2radius = _2radius; //FPE note: We also copy the cache
+            clone._density = _density;
+            clone._position = _position;
+            clone.MassData = MassData;
+            return clone;
         }
     }
 }

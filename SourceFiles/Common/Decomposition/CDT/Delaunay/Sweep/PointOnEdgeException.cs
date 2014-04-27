@@ -31,9 +31,9 @@
 
 using System;
 
-namespace Poly2Tri.Triangulation.Delaunay.Sweep
+namespace FarseerPhysics.Common.Decomposition.CDT.Delaunay.Sweep
 {
-    public class PointOnEdgeException : NotImplementedException
+    internal class PointOnEdgeException : NotImplementedException
     {
         public PointOnEdgeException(string message)
             : base(message)

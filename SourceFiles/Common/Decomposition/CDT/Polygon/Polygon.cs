@@ -41,11 +41,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Poly2Tri.Triangulation.Delaunay;
+using FarseerPhysics.Common.Decomposition.CDT.Delaunay;
 
-namespace Poly2Tri.Triangulation.Polygon
+namespace FarseerPhysics.Common.Decomposition.CDT.Polygon
 {
-    public class Polygon : Triangulatable
+    internal class Polygon : Triangulatable
     {
         protected List<Polygon> _holes;
         protected PolygonPoint _last;

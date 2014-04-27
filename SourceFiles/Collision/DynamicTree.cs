@@ -1,6 +1,6 @@
 ﻿/*
-* Farseer Physics Engine based on Box2D.XNA port:
-* Copyright (c) 2011 Ian Qvist
+* Farseer Physics Engine:
+* Copyright (c) 2012 Ian Qvist
 * 
 * Original source Box2D:
 * Copyright (c) 2006-2011 Erin Catto http://www.box2d.org 
@@ -41,7 +41,6 @@ namespace FarseerPhysics.Collision
         internal int Child1;
         internal int Child2;
 
-        // leaf = 0, free node = -1
         internal int Height;
         internal int ParentOrNext;
         internal T UserData;
@@ -63,20 +62,14 @@ namespace FarseerPhysics.Collision
     /// </summary>
     public class DynamicTree<T>
     {
-        internal const int NullNode = -1;
-        private static Stack<int> _stack = new Stack<int>(256);
+        private Stack<int> _raycastStack = new Stack<int>(256);
+        private Stack<int> _queryStack = new Stack<int>(256);
         private int _freeList;
-        private int _insertionCount;
         private int _nodeCapacity;
         private int _nodeCount;
         private TreeNode<T>[] _nodes;
-
-        /// <summary>
-        /// This is used incrementally traverse the tree for re-balancing.
-        /// </summary>
-        private int _path;
-
         private int _root;
+        internal const int NullNode = -1;
 
         /// <summary>
         /// Constructing the tree initializes the node pool.
@@ -96,21 +89,87 @@ namespace FarseerPhysics.Collision
                 _nodes[i].ParentOrNext = i + 1;
                 _nodes[i].Height = 1;
             }
-
             _nodes[_nodeCapacity - 1] = new TreeNode<T>();
             _nodes[_nodeCapacity - 1].ParentOrNext = NullNode;
             _nodes[_nodeCapacity - 1].Height = 1;
             _freeList = 0;
-
-            _path = 0;
-
-            _insertionCount = 0;
         }
 
-        public int TreeHeight
+        /// <summary>
+        /// Compute the height of the binary tree in O(N) time. Should not be called often.
+        /// </summary>
+        public int Height
         {
-            get { throw new NotImplementedException(); }
-            set { throw new NotImplementedException(); }
+            get
+            {
+                if (_root == NullNode)
+                {
+                    return 0;
+                }
+
+                return _nodes[_root].Height;
+            }
+        }
+
+        /// <summary>
+        /// Get the ratio of the sum of the node areas to the root area.
+        /// </summary>
+        public float AreaRatio
+        {
+            get
+            {
+                if (_root == NullNode)
+                {
+                    return 0.0f;
+                }
+
+                TreeNode<T> root = _nodes[_root];
+                float rootArea = root.AABB.Perimeter;
+
+                float totalArea = 0.0f;
+                for (int i = 0; i < _nodeCapacity; ++i)
+                {
+                    TreeNode<T> node = _nodes[i];
+                    if (node.Height < 0)
+                    {
+                        // Free node in pool
+                        continue;
+                    }
+
+                    totalArea += node.AABB.Perimeter;
+                }
+
+                return totalArea / rootArea;
+            }
+        }
+
+        /// <summary>
+        /// Get the maximum balance of an node in the tree. The balance is the difference
+        /// in height of the two children of a node.
+        /// </summary>
+        public int MaxBalance
+        {
+            get
+            {
+                int maxBalance = 0;
+                for (int i = 0; i < _nodeCapacity; ++i)
+                {
+                    TreeNode<T> node = _nodes[i];
+                    if (node.Height <= 1)
+                    {
+                        continue;
+                    }
+
+                    Debug.Assert(node.IsLeaf() == false);
+
+                    int child1 = node.Child1;
+                    int child2 = node.Child2;
+                    int balance = Math.Abs(_nodes[child2].Height - _nodes[child1].Height);
+                    maxBalance = Math.Max(maxBalance, balance);
+                }
+
+                return maxBalance;
+            }
         }
 
         /// <summary>
@@ -236,12 +295,12 @@ namespace FarseerPhysics.Collision
         /// <param name="aabb">The aabb.</param>
         public void Query(Func<int, bool> callback, ref AABB aabb)
         {
-            _stack.Clear();
-            _stack.Push(_root);
+            _queryStack.Clear();
+            _queryStack.Push(_root);
 
-            while (_stack.Count > 0)
+            while (_queryStack.Count > 0)
             {
-                int nodeId = _stack.Pop();
+                int nodeId = _queryStack.Pop();
                 if (nodeId == NullNode)
                 {
                     continue;
@@ -261,8 +320,8 @@ namespace FarseerPhysics.Collision
                     }
                     else
                     {
-                        _stack.Push(node.Child1);
-                        _stack.Push(node.Child2);
+                        _queryStack.Push(node.Child1);
+                        _queryStack.Push(node.Child2);
                     }
                 }
             }
@@ -286,7 +345,7 @@ namespace FarseerPhysics.Collision
             r.Normalize();
 
             // v is perpendicular to the segment.
-            Vector2 absV = MathUtils.Abs(new Vector2(-r.Y, r.X));
+            Vector2 absV = MathUtils.Abs(new Vector2(-r.Y, r.X)); //FPE: Inlined the 'v' variable
 
             // Separating axis for segment (Gino, p80).
             // |dot(v, p1 - c)| > dot(|v|, h)
@@ -301,12 +360,12 @@ namespace FarseerPhysics.Collision
                 Vector2.Max(ref p1, ref t, out segmentAABB.UpperBound);
             }
 
-            _stack.Clear();
-            _stack.Push(_root);
+            _raycastStack.Clear();
+            _raycastStack.Push(_root);
 
-            while (_stack.Count > 0)
+            while (_raycastStack.Count > 0)
             {
-                int nodeId = _stack.Pop();
+                int nodeId = _raycastStack.Pop();
                 if (nodeId == NullNode)
                 {
                     continue;
@@ -355,33 +414,10 @@ namespace FarseerPhysics.Collision
                 }
                 else
                 {
-                    _stack.Push(node.Child1);
-                    _stack.Push(node.Child2);
+                    _raycastStack.Push(node.Child1);
+                    _raycastStack.Push(node.Child2);
                 }
             }
-        }
-
-        private int CountLeaves(int nodeId)
-        {
-            if (nodeId == NullNode)
-            {
-                return 0;
-            }
-
-            Debug.Assert(0 <= nodeId && nodeId < _nodeCapacity);
-            TreeNode<T> node = _nodes[nodeId];
-
-            if (node.IsLeaf())
-            {
-                Debug.Assert(node.Height == 1);
-                return 1;
-            }
-
-            int count1 = CountLeaves(node.Child1);
-            int count2 = CountLeaves(node.Child2);
-            int count = count1 + count2;
-            Debug.Assert(count == node.Height);
-            return count;
         }
 
         private int AllocateNode()
@@ -403,11 +439,11 @@ namespace FarseerPhysics.Collision
                 {
                     _nodes[i] = new TreeNode<T>();
                     _nodes[i].ParentOrNext = i + 1;
-                    _nodes[i].Height = 1;
+                    _nodes[i].Height = -1;
                 }
                 _nodes[_nodeCapacity - 1] = new TreeNode<T>();
                 _nodes[_nodeCapacity - 1].ParentOrNext = NullNode;
-                _nodes[_nodeCapacity - 1].Height = 1;
+                _nodes[_nodeCapacity - 1].Height = -1;
                 _freeList = _nodeCount;
             }
 
@@ -435,8 +471,6 @@ namespace FarseerPhysics.Collision
 
         private void InsertLeaf(int leaf)
         {
-            ++_insertionCount;
-
             if (_root == NullNode)
             {
                 _root = leaf;
@@ -518,7 +552,7 @@ namespace FarseerPhysics.Collision
             int sibling = index;
 
             // Create a new parent.
-            int oldParent = _nodes[index].ParentOrNext;
+            int oldParent = _nodes[sibling].ParentOrNext;
             int newParent = AllocateNode();
             _nodes[newParent].ParentOrNext = oldParent;
             _nodes[newParent].UserData = default(T);
@@ -539,7 +573,7 @@ namespace FarseerPhysics.Collision
 
                 _nodes[newParent].Child1 = sibling;
                 _nodes[newParent].Child2 = leaf;
-                _nodes[index].ParentOrNext = newParent;
+                _nodes[sibling].ParentOrNext = newParent;
                 _nodes[leaf].ParentOrNext = newParent;
             }
             else
@@ -547,7 +581,7 @@ namespace FarseerPhysics.Collision
                 // The sibling was the root.
                 _nodes[newParent].Child1 = sibling;
                 _nodes[newParent].Child2 = leaf;
-                _nodes[index].ParentOrNext = newParent;
+                _nodes[sibling].ParentOrNext = newParent;
                 _nodes[leaf].ParentOrNext = newParent;
                 _root = newParent;
             }
@@ -632,20 +666,11 @@ namespace FarseerPhysics.Collision
             //Validate();
         }
 
-        /// Compute the height of the binary tree in O(N) time. Should not be
-        /// called often.
-        public int GetHeight()
-        {
-            if (_root == NullNode)
-            {
-                return 0;
-            }
-
-            return _nodes[_root].Height;
-        }
-
-        // Perform a left or right rotation if node A is imbalanced.
-        // Returns the new root index.
+        /// <summary>
+        /// Perform a left or right rotation if node A is imbalanced.
+        /// </summary>
+        /// <param name="iA"></param>
+        /// <returns>the new root index.</returns>
         private int Balance(int iA)
         {
             Debug.Assert(iA != NullNode);
@@ -789,35 +814,12 @@ namespace FarseerPhysics.Collision
             return iA;
         }
 
-        /// Get the ratio of the sum of the node areas to the root area.
-        float GetAreaRatio()
-        {
-            if (_root == NullNode)
-            {
-                return 0.0f;
-            }
-
-            TreeNode<T> root = _nodes[_root];
-            float rootArea = root.AABB.Perimeter;
-
-            float totalArea = 0.0f;
-            for (int i = 0; i < _nodeCapacity; ++i)
-            {
-                TreeNode<T> node = _nodes[i];
-                if (node.Height < 0)
-                {
-                    // Free node in pool
-                    continue;
-                }
-
-                totalArea += node.AABB.Perimeter;
-            }
-
-            return totalArea / rootArea;
-        }
-
-        // Compute the height of a sub-tree.
-        int ComputeHeight(int nodeId)
+        /// <summary>
+        /// Compute the height of a sub-tree.
+        /// </summary>
+        /// <param name="nodeId">The node id to use as parent.</param>
+        /// <returns>The height of the tree.</returns>
+        public int ComputeHeight(int nodeId)
         {
             Debug.Assert(0 <= nodeId && nodeId < _nodeCapacity);
             TreeNode<T> node = _nodes[nodeId];
@@ -832,13 +834,17 @@ namespace FarseerPhysics.Collision
             return 1 + Math.Max(height1, height2);
         }
 
-        int ComputeHeight()
+        /// <summary>
+        /// Compute the height of the entire tree.
+        /// </summary>
+        /// <returns>The height of the tree.</returns>
+        public int ComputeHeight()
         {
             int height = ComputeHeight(_root);
             return height;
         }
 
-        void ValidateStructure(int index)
+        public void ValidateStructure(int index)
         {
             if (index == NullNode)
             {
@@ -873,7 +879,7 @@ namespace FarseerPhysics.Collision
             ValidateStructure(child2);
         }
 
-        void ValidateMetrics(int index)
+        public void ValidateMetrics(int index)
         {
             if (index == NullNode)
             {
@@ -898,8 +904,7 @@ namespace FarseerPhysics.Collision
 
             int height1 = _nodes[child1].Height;
             int height2 = _nodes[child2].Height;
-            int height;
-            height = 1 + Math.Max(height1, height2);
+            int height = 1 + Math.Max(height1, height2);
             Debug.Assert(node.Height == height);
 
             AABB AABB = new AABB();
@@ -912,8 +917,10 @@ namespace FarseerPhysics.Collision
             ValidateMetrics(child2);
         }
 
+        /// <summary>
         /// Validate this tree. For testing.
-        void Validate()
+        /// </summary>
+        public void Validate()
         {
             ValidateStructure(_root);
             ValidateMetrics(_root);
@@ -927,37 +934,15 @@ namespace FarseerPhysics.Collision
                 ++freeCount;
             }
 
-            Debug.Assert(GetHeight() == ComputeHeight());
+            Debug.Assert(Height == ComputeHeight());
 
             Debug.Assert(_nodeCount + freeCount == _nodeCapacity);
         }
 
-        /// Get the maximum balance of an node in the tree. The balance is the difference
-        /// in height of the two children of a node.
-        int GetMaxBalance()
-        {
-            int maxBalance = 0;
-            for (int i = 0; i < _nodeCapacity; ++i)
-            {
-                TreeNode<T> node = _nodes[i];
-                if (node.Height <= 1)
-                {
-                    continue;
-                }
-
-                Debug.Assert(node.IsLeaf() == false);
-
-                int child1 = node.Child1;
-                int child2 = node.Child2;
-                int balance = Math.Abs(_nodes[child2].Height - _nodes[child1].Height);
-                maxBalance = Math.Max(maxBalance, balance);
-            }
-
-            return maxBalance;
-        }
-
+        /// <summary>
         /// Build an optimal tree. Very expensive. For testing.
-        void RebuildBottomUp()
+        /// </summary>
+        public void RebuildBottomUp()
         {
             int[] nodes = new int[_nodeCount];
             int count = 0;
@@ -1030,6 +1015,20 @@ namespace FarseerPhysics.Collision
             _root = nodes[0];
 
             Validate();
+        }
+
+        /// <summary>
+        /// Shift the origin of the nodes
+        /// </summary>
+        /// <param name="newOrigin">The displacement to use.</param>
+        public void ShiftOrigin(Vector2 newOrigin)
+        {
+            // Build array of leaves. Free the rest.
+            for (int i = 0; i < _nodeCapacity; ++i)
+            {
+                _nodes[i].AABB.LowerBound -= newOrigin;
+                _nodes[i].AABB.UpperBound -= newOrigin;
+            }
         }
     }
 }

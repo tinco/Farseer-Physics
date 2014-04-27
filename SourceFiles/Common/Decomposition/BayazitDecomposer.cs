@@ -1,50 +1,39 @@
 ﻿using System.Collections.Generic;
-using FarseerPhysics.Common.PolygonManipulation;
+using System.Diagnostics;
 using Microsoft.Xna.Framework;
 
 namespace FarseerPhysics.Common.Decomposition
 {
-    //From phed rev 36
+    //From phed rev 36: http://code.google.com/p/phed/source/browse/trunk/Polygon.cpp
 
     /// <summary>
     /// Convex decomposition algorithm created by Mark Bayazit (http://mnbayazit.com/)
+    /// 
+    /// Properties:
+    /// - Tries to decompose using polygons instead of triangles.
+    /// - Tends to produce optimal results with low processing time.
+    /// - Running time is O(nr), n = number of vertices, r = reflex vertices.
+    /// - Does not support holes.
+    /// 
     /// For more information about this algorithm, see http://mnbayazit.com/406/bayazit
     /// </summary>
-    public static class BayazitDecomposer
+    internal static class BayazitDecomposer
     {
-        private static Vector2 At(int i, Vertices vertices)
-        {
-            int s = vertices.Count;
-            return vertices[i < 0 ? s - (-i % s) : i % s];
-        }
-
-        private static Vertices Copy(int i, int j, Vertices vertices)
-        {
-            Vertices p = new Vertices();
-            while (j < i) j += vertices.Count;
-            //p.reserve(j - i + 1);
-            for (; i <= j; ++i)
-            {
-                p.Add(At(i, vertices));
-            }
-            return p;
-        }
-
         /// <summary>
         /// Decompose the polygon into several smaller non-concave polygon.
         /// If the polygon is already convex, it will return the original polygon, unless it is over Settings.MaxPolygonVertices.
-        /// Precondition: Counter Clockwise polygon
         /// </summary>
-        /// <param name="vertices"></param>
-        /// <returns></returns>
         public static List<Vertices> ConvexPartition(Vertices vertices)
         {
-            //We force it to CCW as it is a precondition in this algorithm.
-            vertices.ForceCounterClockWise();
+            Debug.Assert(vertices.Count > 3);
+            Debug.Assert(vertices.IsCounterClockWise());
 
+            return TriangulatePolygon(vertices);
+        }
+
+        private static List<Vertices> TriangulatePolygon(Vertices vertices)
+        {
             List<Vertices> list = new List<Vertices>();
-            float d, lowerDist, upperDist;
-            Vector2 p;
             Vector2 lowerInt = new Vector2();
             Vector2 upperInt = new Vector2(); // intersection points
             int lowerIndex = 0, upperIndex = 0;
@@ -54,16 +43,18 @@ namespace FarseerPhysics.Common.Decomposition
             {
                 if (Reflex(i, vertices))
                 {
-                    lowerDist = upperDist = float.MaxValue; // std::numeric_limits<qreal>::max();
+                    float upperDist;
+                    float lowerDist = upperDist = float.MaxValue;
                     for (int j = 0; j < vertices.Count; ++j)
                     {
                         // if line intersects with an edge
-                        if (Left(At(i - 1, vertices), At(i, vertices), At(j, vertices)) &&
-                            RightOn(At(i - 1, vertices), At(i, vertices), At(j - 1, vertices)))
+                        float d;
+                        Vector2 p;
+                        if (Left(At(i - 1, vertices), At(i, vertices), At(j, vertices)) && RightOn(At(i - 1, vertices), At(i, vertices), At(j - 1, vertices)))
                         {
                             // find the point of intersection
-                            p = LineTools.LineIntersect(At(i - 1, vertices), At(i, vertices), At(j, vertices),
-                                                        At(j - 1, vertices));
+                            p = LineTools.LineIntersect(At(i - 1, vertices), At(i, vertices), At(j, vertices), At(j - 1, vertices));
+
                             if (Right(At(i + 1, vertices), At(i, vertices), p))
                             {
                                 // make sure it's inside the poly
@@ -78,11 +69,10 @@ namespace FarseerPhysics.Common.Decomposition
                             }
                         }
 
-                        if (Left(At(i + 1, vertices), At(i, vertices), At(j + 1, vertices)) &&
-                            RightOn(At(i + 1, vertices), At(i, vertices), At(j, vertices)))
+                        if (Left(At(i + 1, vertices), At(i, vertices), At(j + 1, vertices)) && RightOn(At(i + 1, vertices), At(i, vertices), At(j, vertices)))
                         {
-                            p = LineTools.LineIntersect(At(i + 1, vertices), At(i, vertices), At(j, vertices),
-                                                        At(j + 1, vertices));
+                            p = LineTools.LineIntersect(At(i + 1, vertices), At(i, vertices), At(j, vertices), At(j + 1, vertices));
+
                             if (Left(At(i - 1, vertices), At(i, vertices), p))
                             {
                                 d = SquareDist(At(i, vertices), p);
@@ -99,17 +89,19 @@ namespace FarseerPhysics.Common.Decomposition
                     // if there are no vertices to connect to, choose a point in the middle
                     if (lowerIndex == (upperIndex + 1) % vertices.Count)
                     {
-                        Vector2 sp = ((lowerInt + upperInt) / 2);
+                        Vector2 p = ((lowerInt + upperInt) / 2);
 
                         lowerPoly = Copy(i, upperIndex, vertices);
-                        lowerPoly.Add(sp);
+                        lowerPoly.Add(p);
                         upperPoly = Copy(lowerIndex, i, vertices);
-                        upperPoly.Add(sp);
+                        upperPoly.Add(p);
                     }
                     else
                     {
                         double highestScore = 0, bestIndex = lowerIndex;
-                        while (upperIndex < lowerIndex) upperIndex += vertices.Count;
+                        while (upperIndex < lowerIndex)
+                            upperIndex += vertices.Count;
+
                         for (int j = lowerIndex; j <= upperIndex; ++j)
                         {
                             if (CanSee(i, j, vertices))
@@ -117,15 +109,10 @@ namespace FarseerPhysics.Common.Decomposition
                                 double score = 1 / (SquareDist(At(i, vertices), At(j, vertices)) + 1);
                                 if (Reflex(j, vertices))
                                 {
-                                    if (RightOn(At(j - 1, vertices), At(j, vertices), At(i, vertices)) &&
-                                        LeftOn(At(j + 1, vertices), At(j, vertices), At(i, vertices)))
-                                    {
+                                    if (RightOn(At(j - 1, vertices), At(j, vertices), At(i, vertices)) && LeftOn(At(j + 1, vertices), At(j, vertices), At(i, vertices)))
                                         score += 3;
-                                    }
                                     else
-                                    {
                                         score += 2;
-                                    }
                                 }
                                 else
                                 {
@@ -141,8 +128,8 @@ namespace FarseerPhysics.Common.Decomposition
                         lowerPoly = Copy(i, (int)bestIndex, vertices);
                         upperPoly = Copy((int)bestIndex, i, vertices);
                     }
-                    list.AddRange(ConvexPartition(lowerPoly));
-                    list.AddRange(ConvexPartition(upperPoly));
+                    list.AddRange(TriangulatePolygon(lowerPoly));
+                    list.AddRange(TriangulatePolygon(upperPoly));
                     return list;
                 }
             }
@@ -152,67 +139,70 @@ namespace FarseerPhysics.Common.Decomposition
             {
                 lowerPoly = Copy(0, vertices.Count / 2, vertices);
                 upperPoly = Copy(vertices.Count / 2, 0, vertices);
-                list.AddRange(ConvexPartition(lowerPoly));
-                list.AddRange(ConvexPartition(upperPoly));
+                list.AddRange(TriangulatePolygon(lowerPoly));
+                list.AddRange(TriangulatePolygon(upperPoly));
             }
             else
                 list.Add(vertices);
 
-            //The polygons are not guaranteed to be without collinear points. We remove
-            //them to be sure.
-            for (int i = 0; i < list.Count; i++)
-            {
-                list[i] = SimplifyTools.CollinearSimplify(list[i], 0);
-            }
-
-            //Remove empty vertice collections
-            for (int i = list.Count - 1; i >= 0; i--)
-            {
-                if (list[i].Count == 0)
-                    list.RemoveAt(i);
-            }
-
             return list;
+        }
+
+        private static Vector2 At(int i, Vertices vertices)
+        {
+            int s = vertices.Count;
+            return vertices[i < 0 ? s - 1 - ((-i - 1) % s) : i % s];
+        }
+
+        private static Vertices Copy(int i, int j, Vertices vertices)
+        {
+            while (j < i)
+                j += vertices.Count;
+
+            Vertices p = new Vertices(j);
+
+            for (; i <= j; ++i)
+            {
+                p.Add(At(i, vertices));
+            }
+            return p;
         }
 
         private static bool CanSee(int i, int j, Vertices vertices)
         {
             if (Reflex(i, vertices))
             {
-                if (LeftOn(At(i, vertices), At(i - 1, vertices), At(j, vertices)) &&
-                    RightOn(At(i, vertices), At(i + 1, vertices), At(j, vertices))) return false;
+                if (LeftOn(At(i, vertices), At(i - 1, vertices), At(j, vertices)) && RightOn(At(i, vertices), At(i + 1, vertices), At(j, vertices)))
+                    return false;
             }
             else
             {
-                if (RightOn(At(i, vertices), At(i + 1, vertices), At(j, vertices)) ||
-                    LeftOn(At(i, vertices), At(i - 1, vertices), At(j, vertices))) return false;
+                if (RightOn(At(i, vertices), At(i + 1, vertices), At(j, vertices)) || LeftOn(At(i, vertices), At(i - 1, vertices), At(j, vertices)))
+                    return false;
             }
             if (Reflex(j, vertices))
             {
-                if (LeftOn(At(j, vertices), At(j - 1, vertices), At(i, vertices)) &&
-                    RightOn(At(j, vertices), At(j + 1, vertices), At(i, vertices))) return false;
+                if (LeftOn(At(j, vertices), At(j - 1, vertices), At(i, vertices)) && RightOn(At(j, vertices), At(j + 1, vertices), At(i, vertices)))
+                    return false;
             }
             else
             {
-                if (RightOn(At(j, vertices), At(j + 1, vertices), At(i, vertices)) ||
-                    LeftOn(At(j, vertices), At(j - 1, vertices), At(i, vertices))) return false;
+                if (RightOn(At(j, vertices), At(j + 1, vertices), At(i, vertices)) || LeftOn(At(j, vertices), At(j - 1, vertices), At(i, vertices)))
+                    return false;
             }
             for (int k = 0; k < vertices.Count; ++k)
             {
                 if ((k + 1) % vertices.Count == i || k == i || (k + 1) % vertices.Count == j || k == j)
-                {
                     continue; // ignore incident edges
-                }
+
                 Vector2 intersectionPoint;
+
                 if (LineTools.LineIntersect(At(i, vertices), At(j, vertices), At(k, vertices), At(k + 1, vertices), out intersectionPoint))
-                {
                     return false;
-                }
             }
             return true;
         }
 
-        // precondition: ccw
         private static bool Reflex(int i, Vertices vertices)
         {
             return Right(i, vertices);

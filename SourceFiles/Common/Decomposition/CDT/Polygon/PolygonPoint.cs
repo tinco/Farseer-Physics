@@ -34,9 +34,9 @@
 // Future possibilities
 //   Documentation!
 
-namespace Poly2Tri.Triangulation.Polygon
+namespace FarseerPhysics.Common.Decomposition.CDT.Polygon
 {
-    public class PolygonPoint : TriangulationPoint
+    internal class PolygonPoint : TriangulationPoint
     {
         public PolygonPoint(double x, double y) : base(x, y)
         {

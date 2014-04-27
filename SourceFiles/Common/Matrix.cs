@@ -1,4 +1,4 @@
-#if (!XNA)
+#if !XNA && !WINDOWS_PHONE && !XBOX && !ANDROID
 
 #region License
 
@@ -37,7 +37,7 @@ namespace Microsoft.Xna.Framework
     [StructLayout(LayoutKind.Sequential)]
     public struct Matrix : IEquatable<Matrix>
     {
-        #region Public Fields
+#region Public Fields
 
         public float M11;
         public float M12;
@@ -56,9 +56,9 @@ namespace Microsoft.Xna.Framework
         public float M43;
         public float M44;
 
-        #endregion Public Fields
+#endregion Public Fields
 
-        #region Static Properties
+#region Static Properties
 
         private static Matrix identity = new Matrix(1f, 0f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 0f, 1f);
 
@@ -67,9 +67,9 @@ namespace Microsoft.Xna.Framework
             get { return identity; }
         }
 
-        #endregion Static Properties
+#endregion Static Properties
 
-        #region Public Properties
+#region Public Properties
 
         public Vector3 Backward
         {
@@ -148,9 +148,9 @@ namespace Microsoft.Xna.Framework
             }
         }
 
-        #endregion Public Properties
+#endregion Public Properties
 
-        #region Constructors
+#region Constructors
 
         /// <summary>
         /// Constructor for 4x4 Matrix
@@ -224,9 +224,9 @@ namespace Microsoft.Xna.Framework
             M44 = m44;
         }
 
-        #endregion Constructors
+#endregion Constructors
 
-        #region Public Static Methods
+#region Public Static Methods
 
         public static Matrix CreateWorld(Vector3 position, Vector3 forward, Vector3 up)
         {
@@ -985,9 +985,9 @@ namespace Microsoft.Xna.Framework
             result.M44 = matrix.M44;
         }
 
-        #endregion Public Static Methods
+#endregion Public Static Methods
 
-        #region Public Methods
+#region Public Methods
 
         public float Determinant()
         {
@@ -1011,9 +1011,9 @@ namespace Microsoft.Xna.Framework
             return this == other;
         }
 
-        #endregion Public Methods
+#endregion Public Methods
 
-        #region Operators
+#region Operators
 
         public static Matrix operator +(Matrix matrix1, Matrix matrix2)
         {
@@ -1101,9 +1101,9 @@ namespace Microsoft.Xna.Framework
             return matrix1;
         }
 
-        #endregion
+#endregion
 
-        #region Object Overrides
+#region Object Overrides
 
         public override bool Equals(object obj)
         {
@@ -1123,7 +1123,7 @@ namespace Microsoft.Xna.Framework
                    " {M41:" + M41 + " M42:" + M42 + " M43:" + M43 + " M44:" + M44 + "} }";
         }
 
-        #endregion
+#endregion
     }
 }
 

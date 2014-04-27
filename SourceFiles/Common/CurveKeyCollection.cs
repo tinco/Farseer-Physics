@@ -1,4 +1,4 @@
-﻿#if (!XNA)
+﻿#if !XNA && !WINDOWS_PHONE && !XBOX && !ANDROID
 
 #region License
 
@@ -40,14 +40,14 @@ namespace Microsoft.Xna.Framework
 {
     public class CurveKeyCollection : ICollection<CurveKey>, IEnumerable<CurveKey>, IEnumerable
     {
-        #region Private Fields
+#region Private Fields
 
         private List<CurveKey> innerlist;
         private bool isReadOnly = false;
 
-        #endregion Private Fields
+#endregion Private Fields
 
-        #region Properties
+#region Properties
 
         public CurveKey this[int index]
         {
@@ -80,18 +80,18 @@ namespace Microsoft.Xna.Framework
             get { return isReadOnly; }
         }
 
-        #endregion Properties
+#endregion Properties
 
-        #region Constructors
+#region Constructors
 
         public CurveKeyCollection()
         {
             innerlist = new List<CurveKey>();
         }
 
-        #endregion Constructors
+#endregion Constructors
 
-        #region Public Methods
+#region Public Methods
 
         public void Add(CurveKey item)
         {
@@ -169,7 +169,7 @@ namespace Microsoft.Xna.Framework
                     (Exception) null);
         }
 
-        #endregion Public Methods
+#endregion Public Methods
     }
 }
 

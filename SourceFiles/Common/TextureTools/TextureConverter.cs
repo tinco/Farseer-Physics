@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.Xna.Framework;
 
-namespace FarseerPhysics.Common
+namespace FarseerPhysics.Common.TextureTools
 {
-    // User contribution from Sickbattery aka David Reschke :).
+    // User contribution from Sickbattery aka David Reschke.
 
-    #region ToDo: Create a new file for each ...
     /// <summary>
     /// The detection type affects the resulting polygon data.
     /// </summary>
@@ -24,64 +23,15 @@ namespace FarseerPhysics.Common
         Separated = 1
     }
 
-    /// <summary>
-    /// Detected vertices of a single polygon.
-    /// </summary>
-    public class DetectedVertices : Vertices
-    {
-        private List<Vertices> _holes;
-
-        public List<Vertices> Holes
-        {
-            get { return _holes; }
-            set { _holes = value; }
-        }
-
-        public DetectedVertices()
-            : base()
-        {
-        }
-
-        public DetectedVertices(Vertices vertices)
-            : base(vertices)
-        {
-        }
-
-        public void Transform(Matrix transform)
-        {
-            // Transform main polygon
-            for (int i = 0; i < this.Count; i++)
-                this[i] = Vector2.Transform(this[i], transform);
-
-            // Transform holes
-            Vector2[] temp = null;
-            if (_holes != null && _holes.Count > 0)
-            {
-                for (int i = 0; i < _holes.Count; i++)
-                {
-                    temp = _holes[i].ToArray();
-                    Vector2.Transform(temp, ref transform, temp);
-
-                    _holes[i] = new Vertices(temp);
-                }
-            }
-        }
-    }
-    #endregion
-
-    /// <summary>
-    /// 
-    /// </summary>
     public sealed class TextureConverter
     {
-        private const int _CLOSEPIXELS_LENGTH = 8;
+        private const int ClosepixelsLength = 8;
 
         /// <summary>
         /// This array is ment to be readonly.
         /// It's not because it is accessed very frequently.
         /// </summary>
-        private static /*readonly*/ int[,] ClosePixels =
-            new int[_CLOSEPIXELS_LENGTH, 2] { { -1, -1 }, { 0, -1 }, { 1, -1 }, { 1, 0 }, { 1, 1 }, { 0, 1 }, { -1, 1 }, { -1, 0 } };
+        private static int[,] _closePixels = new[,] { { -1, -1 }, { 0, -1 }, { 1, -1 }, { 1, 0 }, { 1, 1 }, { 0, 1 }, { -1, 1 }, { -1, 0 } };
 
         private uint[] _data;
         private int _dataLength;
@@ -251,11 +201,6 @@ namespace FarseerPhysics.Common
         }
         #endregion
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="data"></param>
-        /// <param name="width"></param>
         private void SetTextureData(uint[] data, int width)
         {
             if (data == null)
@@ -286,7 +231,7 @@ namespace FarseerPhysics.Common
         {
             TextureConverter tc = new TextureConverter(data, width);
 
-            List<DetectedVertices> detectedVerticesList = tc.DetectVertices();
+            List<Vertices> detectedVerticesList = tc.DetectVertices();
 
             return detectedVerticesList[0];
         }
@@ -306,7 +251,7 @@ namespace FarseerPhysics.Common
                     HoleDetection = holeDetection
                 };
 
-            List<DetectedVertices> detectedVerticesList = tc.DetectVertices();
+            List<Vertices> detectedVerticesList = tc.DetectVertices();
 
             return detectedVerticesList[0];
         }
@@ -321,8 +266,7 @@ namespace FarseerPhysics.Common
         /// <param name="alphaTolerance">The alpha tolerance.</param>
         /// <param name="multiPartDetection">if set to <c>true</c> it will perform multi part detection.</param>
         /// <returns></returns>
-        public static List<Vertices> DetectVertices(uint[] data, int width, float hullTolerance,
-                                                    byte alphaTolerance, bool multiPartDetection, bool holeDetection)
+        public static List<Vertices> DetectVertices(uint[] data, int width, float hullTolerance, byte alphaTolerance, bool multiPartDetection, bool holeDetection)
         {
             TextureConverter tc =
                 new TextureConverter(data, width)
@@ -333,7 +277,7 @@ namespace FarseerPhysics.Common
                     HoleDetection = holeDetection
                 };
 
-            List<DetectedVertices> detectedVerticesList = tc.DetectVertices();
+            List<Vertices> detectedVerticesList = tc.DetectVertices();
             List<Vertices> result = new List<Vertices>();
 
             for (int i = 0; i < detectedVerticesList.Count; i++)
@@ -344,35 +288,27 @@ namespace FarseerPhysics.Common
             return result;
         }
 
-        public List<DetectedVertices> DetectVertices()
+        public List<Vertices> DetectVertices()
         {
             #region Check TextureConverter setup.
 
             if (_data == null)
-                throw new Exception(
-                    "'_data' can't be null. You have to use SetTextureData(uint[] data, int width) before calling this method.");
+                throw new Exception("'_data' can't be null. You have to use SetTextureData(uint[] data, int width) before calling this method.");
 
             if (_data.Length < 4)
-                throw new Exception(
-                    "'_data' length can't be less then 4. Your texture must be at least 2 x 2 pixels in size. " +
+                throw new Exception("'_data' length can't be less then 4. Your texture must be at least 2 x 2 pixels in size. " +
                     "You have to use SetTextureData(uint[] data, int width) before calling this method.");
 
             if (_width < 2)
-                throw new Exception(
-                    "'_width' can't be less then 2. Your texture must be at least 2 x 2 pixels in size. " +
+                throw new Exception("'_width' can't be less then 2. Your texture must be at least 2 x 2 pixels in size. " +
                     "You have to use SetTextureData(uint[] data, int width) before calling this method.");
 
             if (_data.Length % _width != 0)
-                throw new Exception(
-                    "'_width' has an invalid value. You have to use SetTextureData(uint[] data, int width) before calling this method.");
+                throw new Exception("'_width' has an invalid value. You have to use SetTextureData(uint[] data, int width) before calling this method.");
 
             #endregion
 
-
-            List<DetectedVertices> detectedPolygons = new List<DetectedVertices>();
-
-            DetectedVertices polygon;
-            Vertices holePolygon;
+            List<Vertices> detectedPolygons = new List<Vertices>();
 
             Vector2? holeEntrance = null;
             Vector2? polygonEntrance = null;
@@ -382,10 +318,11 @@ namespace FarseerPhysics.Common
             bool searchOn;
             do
             {
+                Vertices polygon;
                 if (detectedPolygons.Count == 0)
                 {
                     // First pass / single polygon
-                    polygon = new DetectedVertices(CreateSimplePolygon(Vector2.Zero, Vector2.Zero));
+                    polygon = new Vertices(CreateSimplePolygon(Vector2.Zero, Vector2.Zero));
 
                     if (polygon.Count > 2)
                         polygonEntrance = GetTopMostVertex(polygon);
@@ -393,8 +330,7 @@ namespace FarseerPhysics.Common
                 else if (polygonEntrance.HasValue)
                 {
                     // Multi pass / multiple polygons
-                    polygon = new DetectedVertices(CreateSimplePolygon(
-                        polygonEntrance.Value, new Vector2(polygonEntrance.Value.X - 1f, polygonEntrance.Value.Y)));
+                    polygon = new Vertices(CreateSimplePolygon(polygonEntrance.Value, new Vector2(polygonEntrance.Value.X - 1f, polygonEntrance.Value.Y)));
                 }
                 else
                     break;
@@ -415,8 +351,8 @@ namespace FarseerPhysics.Common
                                 if (!blackList.Contains(holeEntrance.Value))
                                 {
                                     blackList.Add(holeEntrance.Value);
-                                    holePolygon = CreateSimplePolygon(holeEntrance.Value,
-                                        new Vector2(holeEntrance.Value.X + 1, holeEntrance.Value.Y));
+                                    Vertices holePolygon = CreateSimplePolygon(holeEntrance.Value,
+                                                                               new Vector2(holeEntrance.Value.X + 1, holeEntrance.Value.Y));
 
                                     if (holePolygon != null && holePolygon.Count > 2)
                                     {
@@ -465,22 +401,17 @@ namespace FarseerPhysics.Common
             if (detectedPolygons == null || (detectedPolygons != null && detectedPolygons.Count == 0))
                 throw new Exception("Couldn't detect any vertices.");
 
-
             // Post processing.
             if (PolygonDetectionType == VerticesDetectionType.Separated) // Only when VerticesDetectionType.Separated? -> Recheck.
                 ApplyTriangulationCompatibleWinding(ref detectedPolygons);
 
-            if (_pixelOffsetOptimization)
-                ApplyPixelOffsetOptimization(ref detectedPolygons);
-
             if (_transform != Matrix.Identity)
                 ApplyTransform(ref detectedPolygons);
-
 
             return detectedPolygons;
         }
 
-        private void ApplyTriangulationCompatibleWinding(ref List<DetectedVertices> detectedPolygons)
+        private void ApplyTriangulationCompatibleWinding(ref List<Vertices> detectedPolygons)
         {
             for (int i = 0; i < detectedPolygons.Count; i++)
             {
@@ -494,15 +425,10 @@ namespace FarseerPhysics.Common
             }
         }
 
-        private void ApplyPixelOffsetOptimization(ref List<DetectedVertices> detectedPolygons)
-        {
-
-        }
-
-        private void ApplyTransform(ref List<DetectedVertices> detectedPolygons)
+        private void ApplyTransform(ref List<Vertices> detectedPolygons)
         {
             for (int i = 0; i < detectedPolygons.Count; i++)
-                detectedPolygons[i].Transform(_transform);
+                detectedPolygons[i].Transform(ref _transform);
         }
 
         #region Data[] functions
@@ -659,7 +585,7 @@ namespace FarseerPhysics.Common
             return null;
         }
 
-        private bool DistanceToHullAcceptable(DetectedVertices polygon, Vector2 point, bool higherDetail)
+        private bool DistanceToHullAcceptableHoles(Vertices polygon, Vector2 point, bool higherDetail)
         {
             if (polygon == null)
                 throw new ArgumentNullException("polygon", "'polygon' can't be null.");
@@ -668,7 +594,7 @@ namespace FarseerPhysics.Common
                 throw new ArgumentException("'polygon.MainPolygon.Count' can't be less then 3.");
 
             // Check the distance to main polygon.
-            if (DistanceToHullAcceptable((Vertices)polygon, point, higherDetail))
+            if (DistanceToHullAcceptable(polygon, point, higherDetail))
             {
                 if (polygon.Holes != null)
                 {
@@ -706,11 +632,8 @@ namespace FarseerPhysics.Common
                 {
                     edgeVertex1 = polygon[i];
 
-                    if (LineTools.DistanceBetweenPointAndLineSegment(ref point, ref edgeVertex1, ref edgeVertex2) <= _hullTolerance ||
-                        LineTools.DistanceBetweenPointAndPoint(ref point, ref edgeVertex1) <= _hullTolerance)
-                    {
+                    if (LineTools.DistanceBetweenPointAndLineSegment(ref point, ref edgeVertex1, ref edgeVertex2) <= _hullTolerance || Vector2.Distance(point, edgeVertex1) <= _hullTolerance)
                         return false;
-                    }
 
                     edgeVertex2 = polygon[i];
                 }
@@ -724,9 +647,7 @@ namespace FarseerPhysics.Common
                     edgeVertex1 = polygon[i];
 
                     if (LineTools.DistanceBetweenPointAndLineSegment(ref point, ref edgeVertex1, ref edgeVertex2) <= _hullTolerance)
-                    {
                         return false;
-                    }
 
                     edgeVertex2 = polygon[i];
                 }
@@ -735,13 +656,13 @@ namespace FarseerPhysics.Common
             }
         }
 
-        private bool InPolygon(DetectedVertices polygon, Vector2 point)
+        private bool InPolygon(Vertices polygon, Vector2 point)
         {
-            bool inPolygon = !DistanceToHullAcceptable(polygon, point, true);
+            bool inPolygon = !DistanceToHullAcceptableHoles(polygon, point, true);
 
             if (!inPolygon)
             {
-                List<float> xCoords = SearchCrossingEdges(polygon, (int)point.Y);
+                List<float> xCoords = SearchCrossingEdgesHoles(polygon, (int)point.Y);
 
                 if (xCoords.Count > 0 && xCoords.Count % 2 == 0)
                 {
@@ -805,7 +726,7 @@ namespace FarseerPhysics.Common
             return returnValue;
         }
 
-        private List<float> SearchCrossingEdges(DetectedVertices polygon, int y)
+        private List<float> SearchCrossingEdgesHoles(Vertices polygon, int y)
         {
             if (polygon == null)
                 throw new ArgumentNullException("polygon", "'polygon' can't be null.");
@@ -813,7 +734,7 @@ namespace FarseerPhysics.Common
             if (polygon.Count < 3)
                 throw new ArgumentException("'polygon.MainPolygon.Count' can't be less then 3.");
 
-            List<float> result = SearchCrossingEdges((Vertices)polygon, y);
+            List<float> result = SearchCrossingEdges(polygon, y);
 
             if (polygon.Holes != null)
             {
@@ -904,8 +825,7 @@ namespace FarseerPhysics.Common
             return edges;
         }
 
-        private bool SplitPolygonEdge(Vertices polygon, Vector2 coordInsideThePolygon,
-                                             out int vertex1Index, out int vertex2Index)
+        private bool SplitPolygonEdge(Vertices polygon, Vector2 coordInsideThePolygon, out int vertex1Index, out int vertex2Index)
         {
             Vector2 slope;
             int nearestEdgeVertex1Index = 0;
@@ -975,7 +895,7 @@ namespace FarseerPhysics.Common
                         slope.Normalize();
 
                         Vector2 tempVector = polygon[nearestEdgeVertex1Index];
-                        distance = LineTools.DistanceBetweenPointAndPoint(ref tempVector, ref foundEdgeCoord);
+                        distance = Vector2.Distance(tempVector, foundEdgeCoord);
 
                         vertex1Index = nearestEdgeVertex1Index;
                         vertex2Index = nearestEdgeVertex1Index + 1;
@@ -1114,10 +1034,10 @@ namespace FarseerPhysics.Common
 
         private bool SearchNearPixels(bool searchingForSolidPixel, ref Vector2 current, out Vector2 foundPixel)
         {
-            for (int i = 0; i < _CLOSEPIXELS_LENGTH; i++)
+            for (int i = 0; i < ClosepixelsLength; i++)
             {
-                int x = (int)current.X + ClosePixels[i, 0];
-                int y = (int)current.Y + ClosePixels[i, 1];
+                int x = (int)current.X + _closePixels[i, 0];
+                int y = (int)current.Y + _closePixels[i, 1];
 
                 if (!searchingForSolidPixel ^ IsSolid(ref x, ref y))
                 {
@@ -1133,10 +1053,10 @@ namespace FarseerPhysics.Common
 
         private bool IsNearPixel(ref Vector2 current, ref Vector2 near)
         {
-            for (int i = 0; i < _CLOSEPIXELS_LENGTH; i++)
+            for (int i = 0; i < ClosepixelsLength; i++)
             {
-                int x = (int)current.X + ClosePixels[i, 0];
-                int y = (int)current.Y + ClosePixels[i, 1];
+                int x = (int)current.X + _closePixels[i, 0];
+                int y = (int)current.Y + _closePixels[i, 1];
 
                 if (x >= 0 && x <= _width && y >= 0 && y <= _height)
                 {
@@ -1177,7 +1097,7 @@ namespace FarseerPhysics.Common
         /// <param name="start">Search start coordinate.</param>
         /// <param name="entrance">Returns the found entrance coordinate. Null if no other shapes found.</param>
         /// <returns>True if a new shape was found.</returns>
-        private bool SearchNextHullEntrance(List<DetectedVertices> detectedPolygons, Vector2 start, out Vector2? entrance)
+        private bool SearchNextHullEntrance(List<Vertices> detectedPolygons, Vector2 start, out Vector2? entrance)
         {
             int x;
 
@@ -1225,12 +1145,12 @@ namespace FarseerPhysics.Common
             int indexOfFirstPixelToCheck = GetIndexOfFirstPixelToCheck(ref last, ref current);
             int indexOfPixelToCheck;
 
-            for (int i = 0; i < _CLOSEPIXELS_LENGTH; i++)
+            for (int i = 0; i < ClosepixelsLength; i++)
             {
-                indexOfPixelToCheck = (indexOfFirstPixelToCheck + i) % _CLOSEPIXELS_LENGTH;
+                indexOfPixelToCheck = (indexOfFirstPixelToCheck + i) % ClosepixelsLength;
 
-                x = (int)current.X + ClosePixels[indexOfPixelToCheck, 0];
-                y = (int)current.Y + ClosePixels[indexOfPixelToCheck, 1];
+                x = (int)current.X + _closePixels[indexOfPixelToCheck, 0];
+                y = (int)current.Y + _closePixels[indexOfPixelToCheck, 1];
 
                 if (x >= 0 && x < _width && y >= 0 && y <= _height)
                 {
